@@ -7,7 +7,6 @@ import {
   IsArray,
   IsOptional,
 } from 'class-validator';
-import { UserRole } from '../../common/enums/user-role.enum';
 
 export class CreateUserDto {
   @IsNotEmpty()

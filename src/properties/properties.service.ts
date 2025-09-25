@@ -35,14 +35,14 @@ export class PropertiesService {
     }
 
     // Проверка принадлежности к организации
-    if (!user.agency.id) {
+    if (!user.agencyId) {
       throw new BadRequestException('Пользователь не привязан к организации');
     }
 
     const property = this.propertiesRepository.create({
       ...createPropertyDto,
       ownerId: user.id,
-      agencyId: user.agency.id,
+      agencyId: user.agencyId,
       currency: createPropertyDto.currency || 'KZT',
     });
 
@@ -81,7 +81,7 @@ export class PropertiesService {
     // Фильтрация по правам доступа
     if (!this.canViewAllProperties(user)) {
       queryBuilder.andWhere('property.agencyId = :agencyId', {
-        agencyId: user.agency.id,
+        agencyId: user.agencyId,
       });
     }
 
@@ -247,13 +247,13 @@ export class PropertiesService {
 
   private canViewProperty(property: Property, user: User): boolean {
     if (this.canViewAllProperties(user)) return true;
-    return property.agencyId === user.agency.id;
+    return property.agencyId === user.agencyId;
   }
 
   private canEditProperty(property: Property, user: User): boolean {
     if (user.roles.some((role) => role.name === UserRole.ADMIN)) return true;
     if (user.roles.some((role) => role.name === UserRole.AGENCY_ADMIN))
-      return property.agencyId === user.agency.id;
+      return property.agencyId === user.agencyId;
     return property.ownerId === user.id;
   }
 
