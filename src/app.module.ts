@@ -23,8 +23,10 @@ import { ConfigModule } from '@nestjs/config';
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'postgres',
-      password: 'postgres',
+      // username: 'postgres', //LOCAL
+      // password: 'postgres', //LOCAL
+      username: 'estate_user',
+      password: 'Skazalya21!',
       database: 'estate_crm',
       entities: [Agency, User, Role, Property, City, District, Selection],
       synchronize: true,
