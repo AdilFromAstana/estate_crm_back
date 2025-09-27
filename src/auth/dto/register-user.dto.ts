@@ -4,10 +4,8 @@ import {
   IsNotEmpty,
   MinLength,
   IsNumber,
-  IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '../../common/enums/user-role.enum';
 
 export class RegisterUserDto {
   @ApiProperty({
@@ -33,14 +31,4 @@ export class RegisterUserDto {
   @IsNotEmpty()
   @IsNumber()
   agencyId: number;
-
-  @ApiProperty({
-    example: [UserRole.REALTOR],
-    description: 'Роли пользователя (минимум одна)',
-    enum: UserRole,
-    isArray: true,
-  })
-  @IsNotEmpty()
-  @IsArray()
-  roles: UserRole[];
 }

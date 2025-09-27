@@ -13,10 +13,6 @@ export class Agency {
   @Column()
   name: string;
 
-  @ApiProperty({ example: 'info@topreal.kz', description: 'Email агентства' })
-  @Column({ unique: true })
-  email: string;
-
   @ApiProperty({
     example: '+7 (777) 123-45-67',
     description: 'Телефон агентства',

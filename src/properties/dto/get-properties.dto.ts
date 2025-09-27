@@ -15,6 +15,8 @@ import { Type } from 'class-transformer';
 import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
+import { BuildingType } from 'src/common/enums/building-type.enum';
+import { Condition } from 'src/common/enums/condition.enum';
 
 export class GetPropertiesDto {
   @ApiPropertyOptional({
@@ -81,20 +83,24 @@ export class GetPropertiesDto {
   tags?: PropertyTag[];
 
   @ApiPropertyOptional({
-    example: 'Алматы',
-    description: 'Фильтр по городу',
+    example: 1,
+    description: 'ID города',
   })
   @IsOptional()
-  @IsString()
-  city?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  cityId?: number;
 
   @ApiPropertyOptional({
-    example: 'Медеуский',
-    description: 'Фильтр по району',
+    example: 5,
+    description: 'ID района',
   })
   @IsOptional()
-  @IsString()
-  district?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  districtId?: number;
 
   @ApiPropertyOptional({
     example: 1000000,
@@ -131,6 +137,24 @@ export class GetPropertiesDto {
   @Type(() => Number)
   @IsNumber()
   maxArea?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  minFloor?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  maxFloor?: number;
+
+  @IsOptional()
+  @IsEnum(BuildingType)
+  buildingType?: BuildingType;
+
+  @IsOptional()
+  @IsEnum(Condition)
+  condition?: Condition;
 
   @ApiPropertyOptional({
     example: 1,

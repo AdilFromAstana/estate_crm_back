@@ -25,6 +25,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'Пользователь не найден или заблокирован',
       );
     }
-    return user;
+    return user; // ← полноценный User с roles: Role[]
   }
 }

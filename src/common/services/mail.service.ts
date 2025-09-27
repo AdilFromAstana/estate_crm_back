@@ -8,14 +8,18 @@ export class MailService {
   private transporter;
 
   constructor(private configService: ConfigService) {
+    const user = configService.get<string>('MAIL_USER');
+    const pass = configService.get<string>('MAIL_PASS');
+
+    if (!user || !pass) {
+      throw new Error('MAIL_USER и MAIL_PASS должны быть заданы в .env файле');
+    }
+
     this.transporter = nodemailer.createTransport({
       host: configService.get<string>('MAIL_HOST') || 'smtp.gmail.com',
       port: configService.get<number>('MAIL_PORT') || 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: configService.get<string>('MAIL_USER'),
-        pass: configService.get<string>('MAIL_PASSWORD'),
-      },
+      secure: false,
+      auth: { user, pass },
     });
   }
 
@@ -37,18 +41,15 @@ export class MailService {
     await this.transporter.sendMail(mailOptions);
   }
 
-  async sendRegistrationEmail(email: string, password: string): Promise<void> {
+  async sendRegistrationEmail(email: string): Promise<void> {
     const mailOptions = {
       from:
         this.configService.get<string>('MAIL_FROM') ||
         this.configService.get<string>('MAIL_USER'),
       to: email,
       subject: 'Регистрация в системе',
-      text: `Ваш временный пароль: ${password}`,
       html: `
         <h2>Добро пожаловать в систему!</h2>
-        <p>Ваш временный пароль: <strong>${password}</strong></p>
-        <p>Пожалуйста, измените пароль после первого входа.</p>
       `,
     };
 

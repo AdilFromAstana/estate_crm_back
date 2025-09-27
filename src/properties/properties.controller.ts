@@ -27,6 +27,7 @@ import { GetPropertiesDto } from './dto/get-properties.dto';
 import { PropertyStatus } from '../common/enums/property-status.enum';
 import { PropertyTag } from '../common/enums/property-tag.enum';
 import { ParsePageDto } from './dto/parse-page.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('Недвижимость')
 @ApiBearerAuth()
@@ -43,6 +44,7 @@ export class PropertiesController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard) // ← обязательно!
   @ApiOperation({ summary: 'Создание новой недвижимости' })
   @ApiResponse({ status: 201, description: 'Недвижимость успешно создана' })
   @ApiResponse({ status: 403, description: 'Нет прав доступа' })

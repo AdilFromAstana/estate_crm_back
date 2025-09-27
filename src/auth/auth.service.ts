@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../common/services/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from 'src/users/entities/user.entity';
+import bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -60,17 +61,23 @@ export class AuthService {
     };
   }
 
-  // src/auth/auth.service.ts
-
   async register(registerDto: RegisterDto): Promise<{ message: string }> {
-    const { email } = registerDto;
+    const { email, password, agencyId } = registerDto;
 
-    // 🔹 1. Валидация email (не пустой, корректный формат)
+    // но можно оставить дополнительные проверки (опционально)
     if (!email || !email.trim()) {
       throw new BadRequestException('Email обязателен');
     }
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       throw new BadRequestException('Некорректный формат email');
+    }
+    if (!password || password.length < 6) {
+      throw new BadRequestException(
+        'Пароль должен содержать минимум 6 символов',
+      );
+    }
+    if (!agencyId || agencyId <= 0) {
+      throw new BadRequestException('Некорректный ID агентства');
     }
 
     // 🔹 2. Проверка: существует ли пользователь с таким email
@@ -81,53 +88,46 @@ export class AuthService {
       );
     }
 
-    // 🔹 3. Генерация временного пароля
-    const tempPassword = Math.random().toString(36).slice(-8);
-    if (!tempPassword || tempPassword.length < 6) {
-      throw new InternalServerErrorException('Не удалось сгенерировать пароль');
-    }
+    // 🔹 Хешируем пароль здесь, в AuthService
+    const hashedPassword = await this.hashPassword(password);
 
-    // 🔹 4. Создание пользователя
     let user: User;
     try {
-      user = await this.usersService.registerMinimalUser(email, tempPassword);
+      // Передаём уже хешированный пароль
+      user = await this.usersService.registerMinimalUser(
+        email,
+        hashedPassword, // ← уже хеш!
+        agencyId,
+      );
     } catch (error) {
-      // Логируем реальную ошибку (для разработки)
       console.error('Ошибка при создании пользователя:', error);
 
-      // Анализируем ошибку от БД
+      // Анализ ошибок БД (PostgreSQL)
       if (error?.code === '23502') {
-        // NOT NULL violation (PostgreSQL)
-        throw new BadRequestException(
-          'Отсутствуют обязательные данные (например, agencyId)',
-        );
+        // NOT NULL violation
+        throw new BadRequestException('Отсутствуют обязательные данные');
       }
       if (error?.code === '23505') {
-        // Unique violation (редкий случай, если проверка выше не сработала)
+        // Unique violation
         throw new BadRequestException(
           'Пользователь с таким email уже существует',
         );
       }
 
-      // Любая другая ошибка
       throw new InternalServerErrorException('Не удалось создать пользователя');
     }
 
-    // 🔹 5. Отправка email
+    // 🔹 4. (Опционально) Отправка email о регистрации
     try {
-      await this.mailService.sendRegistrationEmail(email, tempPassword);
+      await this.mailService.sendRegistrationEmail(email); // ← без пароля!
     } catch (mailError) {
-      console.error('Ошибка отправки email:', mailError);
-      // Важно: не отменяем регистрацию, если email не ушёл
-      // Но можно уведомить админа или сохранить в очередь
-      throw new InternalServerErrorException(
-        'Регистрация прошла успешно, но письмо не отправлено. Обратитесь в поддержку.',
-      );
+      console.error('Ошибка отправки приветственного письма:', mailError);
+      // Не прерываем регистрацию — пользователь создан
     }
 
     return {
       message:
-        'Пользователь успешно зарегистрирован. Временный пароль отправлен на email.',
+        'Пользователь успешно зарегистрирован. Вы можете войти в систему.',
     };
   }
 
@@ -190,5 +190,9 @@ export class AuthService {
   async logout(userId: number): Promise<{ message: string }> {
     await this.usersService.clearRefreshToken(userId);
     return { message: 'Выход выполнен успешно' };
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
   }
 }

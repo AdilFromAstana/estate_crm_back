@@ -25,24 +25,29 @@ export class UsersService {
   // 🔐 Методы для AuthService (новые)
   // ================================
 
-  async registerMinimalUser(email: string, password: string): Promise<User> {
-    const existingUser = await this.usersRepository.findOne({
-      where: { email },
+  async registerMinimalUser(
+    email: string,
+    hashedPassword: string, // ← уже хеш!
+    agencyId: number,
+  ): Promise<User> {
+    const realtorRole = await this.rolesRepository.findOne({
+      where: { name: 'realtor' },
     });
-    if (existingUser) {
-      throw new BadRequestException(
-        'Пользователь с таким email уже существует',
+
+    if (!realtorRole) {
+      throw new Error(
+        'Роль "realtor" не найдена. Выполните инициализацию ролей.',
       );
     }
 
     const user = this.usersRepository.create({
       email,
-      password, // пароль будет захэширован в entity (через @BeforeInsert)
-      isActive: true,
-      isVerified: false,
+      password: hashedPassword, // просто сохраняем
+      agencyId,
+      roles: [realtorRole], // или как у тебя по умолчанию
     });
 
-    return this.usersRepository.save(user);
+    return await this.usersRepository.save(user); // ← исправлено: было this.userRepository
   }
 
   async incrementLoginAttempts(userId: number): Promise<void> {

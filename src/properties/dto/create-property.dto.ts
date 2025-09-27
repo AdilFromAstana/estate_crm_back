@@ -12,12 +12,13 @@ import {
   IsUrl,
   ArrayUnique,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
 import { Amenity } from '../../common/enums/amenity.enum';
+import { BuildingType } from 'src/common/enums/building-type.enum';
+import { Condition } from 'src/common/enums/condition.enum';
 
 export class CreatePropertyDto {
   @ApiProperty({
@@ -133,6 +134,16 @@ export class CreatePropertyDto {
   @IsInt()
   @Min(1800)
   yearBuilt?: number;
+
+  @ApiPropertyOptional({ example: 2020, description: 'BuildingType' })
+  @IsOptional()
+  @IsEnum(BuildingType, { each: true })
+  buildingType?: BuildingType[];
+
+  @ApiPropertyOptional({ example: 2020, description: 'Condition' })
+  @IsOptional()
+  @IsEnum(Condition, { each: true })
+  condition?: Condition[];
 
   // Финансовые данные
   @ApiProperty({ example: 25000000, description: 'Цена в тенге' })

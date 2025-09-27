@@ -8,11 +8,6 @@ export class AgencyDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'info@topreal.kz', description: 'Email агентства' })
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
   @ApiProperty({
     example: '+7 (777) 123-45-67',
     description: 'Телефон агентства',

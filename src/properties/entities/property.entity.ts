@@ -17,6 +17,8 @@ import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
 import { Amenity } from '../../common/enums/amenity.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { BuildingType } from 'src/common/enums/building-type.enum';
+import { Condition } from 'src/common/enums/condition.enum';
 
 @Entity()
 @Index(['agencyId', 'status'])
@@ -190,6 +192,13 @@ export class Property {
   })
   @Column({ type: 'simple-array', nullable: true })
   photos: string[];
+  
+  @Column({ type: 'enum', enum: BuildingType, nullable: true })
+  buildingType: BuildingType;
+
+  // Состояние — ОДНО значение
+  @Column({ type: 'enum', enum: Condition, nullable: true })
+  condition: Condition;
 
   // Социальные сети для недвижимости (для шаринга)
   @ApiProperty({

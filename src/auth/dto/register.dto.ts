@@ -1,5 +1,5 @@
 // src/auth/dto/register.dto.ts
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -18,4 +18,12 @@ export class RegisterDto {
   @IsNotEmpty()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({
+    example: 1,
+    description: 'ID агентства',
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  agencyId: number;
 }

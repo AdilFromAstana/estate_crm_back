@@ -41,10 +41,6 @@ export class AgenciesService {
     return this.agenciesRepository.findOne({ where: { id } });
   }
 
-  async findOneByEmail(email: string): Promise<Agency | null> {
-    return this.agenciesRepository.findOne({ where: { email } });
-  }
-
   async findOneByBin(bin: string): Promise<Agency | null> {
     return this.agenciesRepository.findOne({ where: { bin } });
   }

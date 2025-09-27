@@ -14,9 +14,11 @@ import { City } from './locations/entities/city.entity';
 import { Selection } from './selections/entities/selection.entity';
 import { District } from './locations/entities/district.entity';
 import { SelectionsModule } from './selections/selections.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
