@@ -14,22 +14,27 @@ import { City } from './locations/entities/city.entity';
 import { Selection } from './selections/entities/selection.entity';
 import { District } from './locations/entities/district.entity';
 import { SelectionsModule } from './selections/selections.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      // username: 'postgres', //LOCAL
-      // password: 'postgres', //LOCAL
-      username: 'estate_user',
-      password: 'Skazalya21!',
-      database: 'estate_crm',
-      entities: [Agency, User, Role, Property, City, District, Selection],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_DATABASE'),
+        entities: [Agency, User, Role, Property, City, District, Selection],
+        synchronize: true,
+      }),
     }),
     AuthModule,
     AgenciesModule,
