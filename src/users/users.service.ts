@@ -3,6 +3,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { Role } from './entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -301,5 +303,39 @@ export class UsersService {
       total,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findOne(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['agency'],
+    });
+    if (!user) {
+      throw new NotFoundException(`Пользователь с id ${id} не найден`);
+    }
+    return user;
+  }
+
+  async remove(id: number): Promise<{ message: string }> {
+    // Проверяем, что пользователь существует и не удалён
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        `Пользователь с id ${id} не найден или уже удалён`,
+      );
+    }
+
+    try {
+      await this.usersRepository.update(id, { deletedAt: new Date() });
+
+      return { message: `Пользователь с id ${id} помечен как удалён` };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Ошибка при удалении пользователя: ${error.message}`,
+      );
+    }
   }
 }

@@ -49,8 +49,8 @@ export class Selection {
     required: false,
     isArray: true,
   })
-  @Column({ type: 'simple-array', nullable: true })
-  propertyIds: string[]; // Массив ID объектов
+  @Column({ type: 'int', array: true, nullable: true }) // ✅ массив чисел в Postgres
+  propertyIds: number[];
 
   @ApiProperty({ example: true, description: 'Общедоступная подборка' })
   @Column({ default: false })

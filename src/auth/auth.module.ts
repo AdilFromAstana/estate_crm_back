@@ -11,11 +11,13 @@ import { MailModule } from '../common/mail/mail.module';
 
 @Module({
   imports: [
-    ConfigModule, // Добавить ConfigModule в imports
+    ConfigModule.forRoot({
+      isGlobal: true, // 👈 чтобы не нужно было импортить в каждом модуле
+    }), // Добавить ConfigModule в imports
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '15m',
         },

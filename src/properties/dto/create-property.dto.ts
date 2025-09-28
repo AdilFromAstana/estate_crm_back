@@ -215,4 +215,12 @@ export class CreatePropertyDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'krisha.kz',
+    description: 'Сайт парсинга из krisha.kz',
+  })
+  @IsOptional()
+  @IsUrl()
+  importUrl: string;
 }

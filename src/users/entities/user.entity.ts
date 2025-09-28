@@ -165,6 +165,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lockUntil: Date; // 🔥 Исправлен тип
 
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt?: Date;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {

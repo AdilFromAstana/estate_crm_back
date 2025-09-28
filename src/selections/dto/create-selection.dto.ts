@@ -36,14 +36,14 @@ export class CreateSelectionDto {
   filters?: any;
 
   @ApiPropertyOptional({
-    example: ['1', '2', '3'],
+    example: [1, 2, 3],
     description: 'ID конкретных объектов недвижимости',
     isArray: true,
   })
   @IsOptional()
   @IsArray()
   @ArrayUnique()
-  propertyIds?: string[]; // Изменено с number[] на string[]
+  propertyIds?: number[];
 
   @ApiPropertyOptional({
     example: false,

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Brackets } from 'typeorm';
+import { Repository, Brackets, In } from 'typeorm';
 import { Property } from './entities/property.entity';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
@@ -30,7 +30,7 @@ export class PropertiesService {
     user: User,
   ): Promise<Property> {
     const {
-      buildingType: buildingTypeArray, // если в DTO массив
+      buildingType: buildingTypeArray,
       condition: conditionArray,
       ...rest
     } = createPropertyDto;
@@ -60,7 +60,7 @@ export class PropertiesService {
       ownerId: user.id,
       agencyId: user.agencyId,
       currency: createPropertyDto.currency || 'KZT',
-      isPublished: false, // или true по умолчанию
+      isPublished: true, // или true по умолчанию
     });
 
     return this.propertiesRepository.save(property);
@@ -205,16 +205,14 @@ export class PropertiesService {
     }
 
     // 🔒 Дополнительные фильтры для авторизованных
-    if (user) {
-      if (agencyId) {
-        // Админ может фильтровать по любому agencyId
-        // Риелтор — только по своему (но выше уже ограничено)
-        queryBuilder.andWhere('property.agencyId = :agencyId', { agencyId });
-      }
+    if (agencyId) {
+      // Админ может фильтровать по любому agencyId
+      // Риелтор — только по своему (но выше уже ограничено)
+      queryBuilder.andWhere('property.agencyId = :agencyId', { agencyId });
+    }
 
-      if (ownerId) {
-        queryBuilder.andWhere('property.ownerId = :ownerId', { ownerId });
-      }
+    if (ownerId) {
+      queryBuilder.andWhere('property.ownerId = :ownerId', { ownerId });
     }
 
     // 📊 Сортировка
@@ -234,6 +232,11 @@ export class PropertiesService {
       total,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findByIds(ids: number[]) {
+    if (!ids || ids.length === 0) return [];
+    return this.propertiesRepository.findBy({ id: In(ids) });
   }
 
   async findOne(id: number, user: User | null): Promise<Property> {
@@ -724,7 +727,7 @@ export class PropertiesService {
           furniture,
           complex,
           description,
-          images: imageUrls,
+          photos: imageUrls,
           sourceUrl: window.location.href,
         };
       });

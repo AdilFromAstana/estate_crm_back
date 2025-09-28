@@ -9,12 +9,16 @@ import { Repository } from 'typeorm';
 import { Agency } from './entities/agency.entity';
 import { AgencyDto } from '../auth/dto/register-agency.dto';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AgenciesService {
   constructor(
     @InjectRepository(Agency)
     private agenciesRepository: Repository<Agency>,
+
+    @InjectRepository(User) // ✅ добавляем
+    private usersRepository: Repository<User>,
   ) {}
 
   async findAll(): Promise<Agency[]> {
@@ -66,16 +70,49 @@ export class AgenciesService {
     await this.agenciesRepository.save(agency);
   }
 
-  async getAgencyUsers(agencyId: number): Promise<any[]> {
-    const agency = await this.agenciesRepository.findOne({
-      where: { id: agencyId },
-      relations: ['users'],
-    });
+  async getAgencyUsers(
+    agencyId: number,
+    options: {
+      page: number;
+      limit: number;
+      search?: string;
+      status?: string;
+      sortBy: string;
+      sortDirection: 'ASC' | 'DESC';
+    },
+  ) {
+    const qb = this.usersRepository // 👈 делаем запрос из User
+      .createQueryBuilder('user')
+      .where('user.agencyId = :agencyId', { agencyId });
 
-    if (!agency) {
-      throw new NotFoundException('Агентство не найдено');
+    if (options.search) {
+      qb.andWhere(
+        '(user.firstName ILIKE :search OR user.lastName ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${options.search}%` },
+      );
     }
 
-    return agency.users;
+    if (options.status === 'active') {
+      qb.andWhere('user.isActive = true');
+    }
+    if (options.status === 'inactive') {
+      qb.andWhere('user.isActive = false');
+    }
+    if (options.status === 'pending') {
+      qb.andWhere('user.isVerified = false');
+    }
+
+    qb.orderBy(`user.${options.sortBy}`, options.sortDirection);
+
+    qb.skip((options.page - 1) * options.limit).take(options.limit);
+
+    const [users, total] = await qb.getManyAndCount();
+
+    return {
+      data: users,
+      total,
+      page: options.page,
+      limit: options.limit,
+    };
   }
 }

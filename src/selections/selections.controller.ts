@@ -58,7 +58,7 @@ export class SelectionsController {
   @ApiResponse({ status: 200, description: 'Информация о подборке' })
   @ApiResponse({ status: 404, description: 'Подборка не найдена' })
   async findOne(@Param('id') id: string, @Request() req) {
-    return this.selectionsService.findOne(+id, req.user);
+    return this.selectionsService.findOne(+id);
   }
 
   @Get(':id/properties')
@@ -78,7 +78,7 @@ export class SelectionsController {
     @Body(ValidationPipe) updateSelectionDto: UpdateSelectionDto,
     @Request() req,
   ) {
-    return this.selectionsService.update(+id, updateSelectionDto, req.user);
+    return this.selectionsService.update(+id, updateSelectionDto);
   }
 
   @Delete(':id')

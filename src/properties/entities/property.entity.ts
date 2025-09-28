@@ -192,7 +192,7 @@ export class Property {
   })
   @Column({ type: 'simple-array', nullable: true })
   photos: string[];
-  
+
   @Column({ type: 'enum', enum: BuildingType, nullable: true })
   buildingType: BuildingType;
 
@@ -220,6 +220,10 @@ export class Property {
   @ApiProperty({ example: true, description: 'Опубликовано' })
   @Column({ default: false })
   isPublished: boolean;
+
+  @ApiProperty({ example: "krisha.kz", description: 'Сайт парсинга из krisha.kz' })
+  @Column({ nullable: true })
+  importUrl: string;
 
   @ApiProperty({
     example: '2023-01-01T00:00:00.000Z',

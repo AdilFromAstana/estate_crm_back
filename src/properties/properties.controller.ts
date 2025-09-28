@@ -11,6 +11,7 @@ import {
   ValidationPipe,
   UseGuards,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,12 +29,68 @@ import { PropertyStatus } from '../common/enums/property-status.enum';
 import { PropertyTag } from '../common/enums/property-tag.enum';
 import { ParsePageDto } from './dto/parse-page.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import * as cheerio from 'cheerio';
 
 @ApiTags('Недвижимость')
 @ApiBearerAuth()
 @Controller('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
+
+  @Get('preview')
+  async getPreview(@Query('url') url: string) {
+    if (!url) {
+      throw new BadRequestException('URL обязателен');
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
+        },
+      });
+      const html = await res.text();
+      const $ = cheerio.load(html);
+
+      const title =
+        $('meta[property="og:title"]').attr('content') ||
+        $('title').text() ||
+        '';
+      const description =
+        $('meta[property="og:description"]').attr('content') ||
+        $('meta[name="description"]').attr('content') ||
+        '';
+
+      // Собираем картинки из галереи
+      let images: string[] = [];
+      $('.gallery__small-item').each((_, el) => {
+        const imgUrl = $(el).attr('data-photo-url');
+        if (imgUrl) images.push(imgUrl);
+      });
+
+      // Если всё равно пусто, fallback
+      if (images.length === 0) {
+        const fallback =
+          $('.gallery__main img').attr('src') ||
+          $('meta[property="og:image"]').attr('content') ||
+          '';
+        if (fallback) images.push(fallback);
+      }
+
+      return {
+        title,
+        description,
+        image: images[0] || null, // для превью
+        images, // весь массив фоток
+        url,
+      };
+    } catch (e) {
+      throw new BadRequestException(
+        `Не удалось получить preview для ${url}: ${e.message}`,
+      );
+    }
+  }
 
   @Post('parse')
   @ApiOperation({ summary: 'Парсинг данных с внешней страницы' })

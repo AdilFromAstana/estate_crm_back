@@ -11,12 +11,14 @@ import { Selection } from './entities/selection.entity';
 import { CreateSelectionDto } from './dto/create-selection.dto';
 import { UpdateSelectionDto } from './dto/update-selection.dto';
 import { User } from '../users/entities/user.entity';
+import { PropertiesService } from 'src/properties/properties.service';
 
 @Injectable()
 export class SelectionsService {
   constructor(
     @InjectRepository(Selection)
     private selectionsRepository: Repository<Selection>,
+    private readonly propertiesService: PropertiesService,
   ) {}
 
   async create(
@@ -64,7 +66,7 @@ export class SelectionsService {
     });
   }
 
-  async findOne(id: number, user: User): Promise<Selection> {
+  async findOne(id: number): Promise<Selection> {
     const selection = await this.selectionsRepository.findOne({
       where: { id, isActive: true },
     });
@@ -73,30 +75,21 @@ export class SelectionsService {
       throw new NotFoundException('Подборка не найдена');
     }
 
-    if (selection.userId !== user.id && !selection.isShared) {
-      throw new ForbiddenException('Нет доступа к этой подборке');
-    }
-
     return selection;
   }
 
   async update(
     id: number,
     updateSelectionDto: UpdateSelectionDto,
-    user: User,
   ): Promise<Selection> {
-    const selection = await this.findOne(id, user);
-
-    if (selection.userId !== user.id) {
-      throw new ForbiddenException('Нет прав для редактирования этой подборки');
-    }
+    const selection = await this.findOne(id);
 
     Object.assign(selection, updateSelectionDto);
     return this.selectionsRepository.save(selection);
   }
 
   async remove(id: number, user: User): Promise<void> {
-    const selection = await this.findOne(id, user);
+    const selection = await this.findOne(id);
 
     if (selection.userId !== user.id) {
       throw new ForbiddenException('Нет прав для удаления этой подборки');
@@ -111,37 +104,41 @@ export class SelectionsService {
     selectionId: number,
     user: User,
   ): Promise<any> {
-    const selection = await this.findOne(selectionId, user);
+    const selection = await this.findOne(selectionId);
 
-    // Если есть конкретные ID объектов - возвращаем их
+    // 1. Подборка по конкретным объектам
     if (selection.propertyIds && selection.propertyIds.length > 0) {
-      // Здесь будет логика получения конкретных объектов по ID
-      // Пока возвращаем заглушку
+      const ids = selection.propertyIds.map((id) => Number(id));
+      const data = await this.propertiesService.findByIds(ids);
       return {
-        data: [],
-        total: selection.propertyIds.length,
-        message: 'Подборка по конкретным объектам',
+        data,
+        total: data.length,
+        type: 'byIds',
       };
     }
 
-    // Если есть фильтры - применяем их
+    // 2. Подборка по фильтрам
     if (selection.filters) {
-      // Преобразуем фильтры в формат, понятный PropertiesService
       const filters = this.transformFilters(selection.filters);
 
-      // Здесь будет логика получения объектов по фильтрам
-      // Пока возвращаем заглушку
+      // ⚡️ ВАЖНО: используем findAll, не getAll
+      const { data, total } = await this.propertiesService.findAll(
+        filters,
+        user,
+      );
+
       return {
-        data: [],
-        total: 0,
-        message: 'Подборка по фильтрам',
+        data,
+        total,
+        type: 'byFilters',
       };
     }
 
+    // 3. Пустая подборка
     return {
       data: [],
       total: 0,
-      message: 'Пустая подборка',
+      type: 'empty',
     };
   }
 

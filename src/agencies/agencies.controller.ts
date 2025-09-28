@@ -9,6 +9,7 @@ import {
   Body,
   ValidationPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +25,29 @@ import { UpdateAgencyDto } from './dto/update-agency.dto';
 @Controller('agencies')
 export class AgenciesController {
   constructor(private readonly agenciesService: AgenciesService) {}
+
+  @Get(':id/users')
+  @ApiOperation({
+    summary: 'Получение сотрудников агентства с пагинацией и фильтрацией',
+  })
+  async getAgencyUsers(
+    @Param('id') id: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('sortBy') sortBy = 'createdAt',
+    @Query('sortDirection') sortDirection: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    return this.agenciesService.getAgencyUsers(+id, {
+      page: +page,
+      limit: +limit,
+      search,
+      status,
+      sortBy,
+      sortDirection,
+    });
+  }
 
   @Get()
   @ApiOperation({ summary: 'Получение списка всех агентств' })
@@ -65,13 +89,5 @@ export class AgenciesController {
   @ApiResponse({ status: 404, description: 'Агентство не найдено' })
   async remove(@Param('id') id: string) {
     return this.agenciesService.remove(+id);
-  }
-
-  @Get(':id/users')
-  @ApiOperation({ summary: 'Получение всех сотрудников агентства' })
-  @ApiResponse({ status: 200, description: 'Список сотрудников' })
-  @ApiResponse({ status: 404, description: 'Агентство не найдено' })
-  async getAgencyUsers(@Param('id') id: string) {
-    return this.agenciesService.getAgencyUsers(+id);
   }
 }
