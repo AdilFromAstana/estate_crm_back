@@ -25,16 +25,36 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_DATABASE'),
-        entities: [Agency, User, Role, Property, City, District, Selection],
-        synchronize: true,
-      }),
+      useFactory: (config: ConfigService) => {
+        const host = config.get<string>('DB_HOST');
+        const port = config.get<number>('DB_PORT');
+        const username = config.get<string>('DB_USERNAME');
+        const password = config.get<string>('DB_PASSWORD');
+        const database = config.get<string>('DB_DATABASE');
+
+        // 🛑 Валидация обязательных переменных
+        if (!host || !port || !username || !password || !database) {
+          throw new Error(
+            `❌ Database config is invalid. 
+            DB_HOST=${host}, 
+            DB_PORT=${port}, 
+            DB_USERNAME=${username}, 
+            DB_PASSWORD=${password ? '***' : '(empty)'}, 
+            DB_DATABASE=${database}`,
+          );
+        }
+
+        return {
+          type: 'postgres',
+          host,
+          port,
+          username,
+          password,
+          database,
+          entities: [Agency, User, Role, Property, City, District, Selection],
+          synchronize: true,
+        };
+      },
     }),
     AuthModule,
     AgenciesModule,
