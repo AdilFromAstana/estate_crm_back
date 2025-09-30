@@ -15,6 +15,8 @@ import { Selection } from './selections/entities/selection.entity';
 import { District } from './locations/entities/district.entity';
 import { SelectionsModule } from './selections/selections.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -62,6 +64,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     PropertiesModule,
     LocationsModule,
     SelectionsModule,
+    MulterModule.register({
+      dest: join(__dirname, '..', 'uploads', 'images'), // папка для сохранения
+    }),
   ],
 })
 export class AppModule {}

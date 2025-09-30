@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -21,11 +22,26 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
+    private readonly configService: ConfigService,
   ) {}
 
   // ================================
   // 🔐 Методы для AuthService (новые)
   // ================================
+
+  async updateAvatar(userId: number, fileName: string) {
+    const user = await this.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+    user.avatar = `/uploads${fileName}`;
+    await this.usersRepository.save(user);
+
+    return {
+      message: 'Аватар обновлён',
+      avatarUrl: user.avatar,
+    };
+  }
 
   async registerMinimalUser(
     email: string,

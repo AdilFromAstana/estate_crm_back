@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users/users.service';
 const basicAuth = require('express-basic-auth');
+import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -39,6 +41,8 @@ async function bootstrap() {
   const config = configBuilder.build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
+
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
   app.enableCors({
     origin: true,
