@@ -113,6 +113,7 @@ export class PropertiesController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Получение списка недвижимости с фильтрацией' })
   @ApiResponse({ status: 200, description: 'Список недвижимости' })
   async findAll(
@@ -131,6 +132,7 @@ export class PropertiesController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Обновление информации о недвижимости' })
   @ApiResponse({ status: 200, description: 'Недвижимость успешно обновлена' })
   @ApiResponse({ status: 403, description: 'Нет прав доступа' })

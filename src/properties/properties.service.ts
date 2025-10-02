@@ -259,12 +259,6 @@ export class PropertiesService {
   ): Promise<Property> {
     const property = await this.findOne(id, user);
 
-    if (!this.canEditProperty(property, user)) {
-      throw new ForbiddenException(
-        'У вас нет прав для редактирования этой недвижимости',
-      );
-    }
-
     Object.assign(property, updatePropertyDto);
     return this.propertiesRepository.save(property);
   }
@@ -367,6 +361,7 @@ export class PropertiesService {
     status: PropertyStatus,
     user: User,
   ): Promise<Property> {
+    console.log('user: ', user);
     const property = await this.findOne(id, user);
 
     if (!this.canEditProperty(property, user)) {
