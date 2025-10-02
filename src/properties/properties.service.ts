@@ -100,16 +100,7 @@ export class PropertiesService {
       .leftJoinAndSelect('property.agency', 'agency');
 
     // 🔑 Логика фильтрации по ролям
-    if (user && this.canViewAllProperties(user)) {
-      // Админ или админ агентства — может видеть всё
-      // Но если передан agencyId или ownerId — фильтруем дополнительно
-    } else if (user && user.agencyId) {
-      // Риелтор — видит только свою агентство
-      queryBuilder.andWhere('property.agencyId = :agencyId', {
-        agencyId: user.agencyId,
-      });
-    } else {
-      // Гость или клиент — только опубликованные объекты
+    if (!user) {
       queryBuilder.andWhere('property.isPublished = true');
     }
 

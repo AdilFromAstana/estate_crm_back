@@ -30,6 +30,7 @@ import { PropertyTag } from '../common/enums/property-tag.enum';
 import { ParsePageDto } from './dto/parse-page.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import * as cheerio from 'cheerio';
+import { OptionalJwtAuthGuard } from 'src/auth/optionalJwtAuthGuard';
 
 @ApiTags('Недвижимость')
 @ApiBearerAuth()
@@ -113,14 +114,14 @@ export class PropertiesController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получение списка недвижимости с фильтрацией' })
   @ApiResponse({ status: 200, description: 'Список недвижимости' })
   async findAll(
     @Query(ValidationPipe) query: GetPropertiesDto,
     @Request() req,
   ) {
-    return this.propertiesService.findAll(query, req.user);
+    return this.propertiesService.findAll(query, req.user ?? null);
   }
 
   @Get(':id')
