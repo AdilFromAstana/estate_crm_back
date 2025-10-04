@@ -3,12 +3,17 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users/users.service';
-const basicAuth = require('express-basic-auth');
 import { join } from 'path';
 import * as express from 'express';
+import * as bodyParser from 'body-parser';
+const basicAuth = require('express-basic-auth');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 💥 Увеличиваем лимит тела запроса (например до 50MB)
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.useGlobalPipes(new ValidationPipe());
 

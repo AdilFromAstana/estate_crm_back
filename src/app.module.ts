@@ -17,6 +17,8 @@ import { SelectionsModule } from './selections/selections.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { join } from 'path';
+import { Complex } from './complexes/entities/complex.entity';
+import { ComplexesModule } from './complexes/complexes.module';
 
 @Module({
   imports: [
@@ -53,7 +55,16 @@ import { join } from 'path';
           username,
           password,
           database,
-          entities: [Agency, User, Role, Property, City, District, Selection],
+          entities: [
+            Agency,
+            User,
+            Role,
+            Property,
+            City,
+            District,
+            Selection,
+            Complex,
+          ],
           synchronize: true,
         };
       },
@@ -64,6 +75,7 @@ import { join } from 'path';
     PropertiesModule,
     LocationsModule,
     SelectionsModule,
+    ComplexesModule,
     MulterModule.register({
       dest: join(__dirname, '..', 'uploads', 'images'), // папка для сохранения
     }),

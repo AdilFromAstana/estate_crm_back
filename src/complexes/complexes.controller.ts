@@ -1,0 +1,66 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  ValidationPipe,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ComplexesService } from './complexes.service';
+import { CreateComplexDto } from './dto/create-complex.dto';
+import { UpdateComplexDto } from './dto/update-complex.dto';
+import { BulkComplexItemDto } from './bulk-create-complex.dto';
+
+@ApiTags('Жилые комплексы')
+@Controller('complexes')
+export class ComplexesController {
+  constructor(private readonly complexesService: ComplexesService) {}
+
+  @Post('bulk')
+  @ApiOperation({ summary: 'Массовое создание ЖК' })
+  async bulkCreate(
+    @Body(new ValidationPipe({ transform: true })) body: BulkComplexItemDto[],
+  ) {
+    return this.complexesService.bulkCreate(body);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Создание нового ЖК' })
+  @ApiResponse({ status: 201, description: 'ЖК успешно создан' })
+  async create(@Body(ValidationPipe) createComplexDto: CreateComplexDto) {
+    return this.complexesService.create(createComplexDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Получение списка ЖК (с поиском)' })
+  @ApiResponse({ status: 200, description: 'Список жилых комплексов' })
+  async findAll(@Query('search') search?: string) {
+    return this.complexesService.findAll(search);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Получение информации о ЖК' })
+  @ApiResponse({ status: 200, description: 'Информация о жилом комплексе' })
+  async findOne(@Param('id') id: string) {
+    return this.complexesService.findOne(+id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Обновление данных ЖК' })
+  async update(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateComplexDto: UpdateComplexDto,
+  ) {
+    return this.complexesService.update(+id, updateComplexDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Удаление ЖК (деактивация)' })
+  async remove(@Param('id') id: string) {
+    return this.complexesService.remove(+id);
+  }
+}
