@@ -232,11 +232,11 @@ async function runPuppeteerParser() {
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Клик для раскрытия списка
-                await page.waitForSelector(complexDropdownSelector, { visible: true, timeout: 5000 });
+                await page.waitForSelector(complexDropdownSelector, { visible: true, timeout: 1000 });
                 await page.click(complexDropdownSelector);
 
                 // Ждем, пока сам UL-список станет видимым
-                await page.waitForSelector(complexOptionsSelector, { visible: true, timeout: 5000 });
+                await page.waitForSelector(complexOptionsSelector, { visible: true, timeout: 1000 });
 
                 console.log(`   [Цикл ${i + 1}] Список ЖК снова раскрыт.`);
             }
@@ -265,12 +265,12 @@ async function runPuppeteerParser() {
             }
 
             // 4. Пауза 3 секунды между кликами (для перехвата ответа)
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // 3. ОТКЛЮЧАЕМ ПЕРЕХВАТЧИК
         console.log("\n   Ожидание завершения всех перехватов запросов...");
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         page.off('response', responseHandler); // Отписываемся от события
 
@@ -284,7 +284,7 @@ async function runPuppeteerParser() {
         console.log("   Сохранен скриншот критической ошибки: critical_error.png");
 
     } finally {
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await browser.close();
     }
 
