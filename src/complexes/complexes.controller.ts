@@ -13,7 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ComplexesService } from './complexes.service';
 import { CreateComplexDto } from './dto/create-complex.dto';
 import { UpdateComplexDto } from './dto/update-complex.dto';
-import { BulkComplexItemDto } from './bulk-create-complex.dto';
+import { BulkComplexItemDto } from './dto/bulk-create-complex.dto';
 
 @ApiTags('Жилые комплексы')
 @Controller('complexes')
@@ -22,10 +22,8 @@ export class ComplexesController {
 
   @Post('bulk')
   @ApiOperation({ summary: 'Массовое создание ЖК' })
-  async bulkCreate(
-    @Body(new ValidationPipe({ transform: true })) body: BulkComplexItemDto[],
-  ) {
-    return this.complexesService.bulkCreate(body);
+  async bulkCreate() {
+    return this.complexesService.bulkCreate();
   }
 
   @Post()

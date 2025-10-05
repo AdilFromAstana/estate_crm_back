@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class CreateComplexDto {
   @ApiProperty({
@@ -32,4 +32,13 @@ export class CreateComplexDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  // 👇 Добавьте это
+  @ApiProperty({
+    example: { 'map.lat': 51.14, 'house.year': 2020 },
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  details?: Record<string, any>;
 }

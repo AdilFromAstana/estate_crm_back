@@ -174,6 +174,13 @@ export class Property {
   hasElevator: boolean;
 
   @ApiProperty({
+    example: 2.8,
+    description: 'Высота потолков в метрах',
+  })
+  @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
+  ceiling: number;
+
+  @ApiProperty({
     example: 'https://example.com/photo1.jpg',
     description: 'URL главного фото',
     required: false,
@@ -221,7 +228,10 @@ export class Property {
   @Column({ default: false })
   isPublished: boolean;
 
-  @ApiProperty({ example: "krisha.kz", description: 'Сайт парсинга из krisha.kz' })
+  @ApiProperty({
+    example: 'krisha.kz',
+    description: 'Сайт парсинга из krisha.kz',
+  })
   @Column({ nullable: true })
   importUrl: string;
 

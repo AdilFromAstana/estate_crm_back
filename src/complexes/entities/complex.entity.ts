@@ -4,11 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity('complexes')
 export class Complex {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column({ length: 255 })
@@ -26,8 +27,8 @@ export class Complex {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  details?: Record<string, any>;
+  @Column({ type: 'json', default: {} })
+  details: Record<string, any>;
 
   @Column({ default: true })
   isActive: boolean;

@@ -8,7 +8,8 @@ import { Repository, ILike } from 'typeorm';
 import { Complex } from './entities/complex.entity';
 import { CreateComplexDto } from './dto/create-complex.dto';
 import { UpdateComplexDto } from './dto/update-complex.dto';
-import { BulkComplexItemDto } from './bulk-create-complex.dto';
+import { BulkComplexItemDto } from './dto/bulk-create-complex.dto';
+import rc_results_final from '../../rc_results_final.json';
 
 @Injectable()
 export class ComplexesService {
@@ -17,17 +18,14 @@ export class ComplexesService {
     private complexesRepository: Repository<Complex>,
   ) {}
 
-  async bulkCreate(data: BulkComplexItemDto[]): Promise<Complex[]> {
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new BadRequestException('Ожидается массив объектов');
-    }
-
-    const entities = data.map((item) =>
-      this.complexesRepository.create({
-        id: Number(item.key),
-        name: item.value,
-        details: item.extra ?? {},
-      }),
+  async bulkCreate(): Promise<Complex[]> {
+    const entities = rc_results_final.map(
+      (item: { id: string; name: string; details: any }) =>
+        this.complexesRepository.create({
+          id: Number(item.id),
+          name: item.name,
+          details: item.details ?? {},
+        }),
     );
 
     return this.complexesRepository.save(entities);
