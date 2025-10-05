@@ -8,12 +8,14 @@ import {
   Body,
   Query,
   ValidationPipe,
+  Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ComplexesService } from './complexes.service';
 import { CreateComplexDto } from './dto/create-complex.dto';
 import { UpdateComplexDto } from './dto/update-complex.dto';
-import { BulkComplexItemDto } from './dto/bulk-create-complex.dto';
+import { GetComplexesDto } from './dto/get-complexes.dto';
 
 @ApiTags('Жилые комплексы')
 @Controller('complexes')
@@ -26,6 +28,16 @@ export class ComplexesController {
     return this.complexesService.bulkCreate();
   }
 
+  @Get('by-name/:name')
+  @ApiOperation({ summary: 'Поиск ЖК по точному названию' })
+  async findByName(@Param('name') name: string) {
+    const complex = await this.complexesService.findByName(name);
+    if (!complex) {
+      throw new NotFoundException('ЖК с таким названием не найден');
+    }
+    return complex;
+  }
+
   @Post()
   @ApiOperation({ summary: 'Создание нового ЖК' })
   @ApiResponse({ status: 201, description: 'ЖК успешно создан' })
@@ -36,8 +48,8 @@ export class ComplexesController {
   @Get()
   @ApiOperation({ summary: 'Получение списка ЖК (с поиском)' })
   @ApiResponse({ status: 200, description: 'Список жилых комплексов' })
-  async findAll(@Query('search') search?: string) {
-    return this.complexesService.findAll(search);
+  async findAll(@Query(ValidationPipe) query: GetComplexesDto) {
+    return this.complexesService.findAll(query);
   }
 
   @Get(':id')

@@ -11,7 +11,7 @@ import { Selection } from './entities/selection.entity';
 import { CreateSelectionDto } from './dto/create-selection.dto';
 import { UpdateSelectionDto } from './dto/update-selection.dto';
 import { User } from '../users/entities/user.entity';
-import { PropertiesService } from 'src/properties/properties.service';
+import { PropertiesService } from 'src/properties/services/properties.service';
 
 @Injectable()
 export class SelectionsService {

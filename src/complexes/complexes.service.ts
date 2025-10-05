@@ -4,12 +4,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, ILike, Brackets } from 'typeorm';
 import { Complex } from './entities/complex.entity';
 import { CreateComplexDto } from './dto/create-complex.dto';
 import { UpdateComplexDto } from './dto/update-complex.dto';
-import { BulkComplexItemDto } from './dto/bulk-create-complex.dto';
 import rc_results_final from '../../rc_results_final.json';
+import { GetComplexesDto } from './dto/get-complexes.dto';
 
 @Injectable()
 export class ComplexesService {
@@ -31,33 +31,82 @@ export class ComplexesService {
     return this.complexesRepository.save(entities);
   }
 
+  async findByName(name: string): Promise<Complex | null> {
+    return this.complexesRepository.findOne({
+      where: { name, isActive: true },
+    });
+  }
+
   async create(createComplexDto: CreateComplexDto): Promise<Complex> {
     const complex = this.complexesRepository.create(createComplexDto);
     return this.complexesRepository.save(complex);
   }
 
-  async findAll(search?: string): Promise<Complex[]> {
-    const where: any = { isActive: true };
+  async findAll(query: GetComplexesDto): Promise<any> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      cityId,
+      districtId,
+      developer,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = query;
 
+    const skip = (page - 1) * limit;
+
+    const qb = this.complexesRepository
+      .createQueryBuilder('complex')
+      .where('complex.isActive = true');
+
+    // 🔍 Поиск по тексту
     if (search) {
-      // Поиск по имени, адресу, району, застройщику (LIKE)
-      where['name'] = ILike(`%${search}%`);
-      // Можно добавить более сложный вариант OR-условий:
-      return this.complexesRepository
-        .createQueryBuilder('complex')
-        .where('complex.isActive = true')
-        .andWhere(
-          '(complex.name ILIKE :search OR complex.address ILIKE :search OR complex.district ILIKE :search OR complex.developer ILIKE :search)',
-          { search: `%${search}%` },
-        )
-        .orderBy('complex.createdAt', 'DESC')
-        .getMany();
+      qb.andWhere(
+        new Brackets((qb2) => {
+          qb2
+            .where('complex.name ILIKE :search', { search: `%${search}%` })
+            .orWhere('complex.address ILIKE :search', { search: `%${search}%` })
+            .orWhere('complex.district ILIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('complex.developer ILIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
     }
 
-    return this.complexesRepository.find({
-      where,
-      order: { createdAt: 'DESC' },
-    });
+    // 🏙️ Фильтры
+    if (cityId) {
+      qb.andWhere('complex.cityId = :cityId', { cityId });
+    }
+
+    if (districtId) {
+      qb.andWhere('complex.districtId = :districtId', { districtId });
+    }
+
+    if (developer) {
+      qb.andWhere('complex.developer ILIKE :developer', {
+        developer: `%${developer}%`,
+      });
+    }
+
+    // 📊 Сортировка
+    const allowedSortFields = ['createdAt', 'name', 'developer'];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(`complex.${sortField}`, sortOrder);
+
+    // 📄 Пагинация
+    const [data, total] = await qb.skip(skip).take(limit).getManyAndCount();
+
+    return {
+      data,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Complex> {

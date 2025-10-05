@@ -21,7 +21,7 @@ import {
   ApiOkResponse,
   ApiBody,
 } from '@nestjs/swagger';
-import { PropertiesService } from './properties.service';
+import { PropertiesService } from './services/properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { GetPropertiesDto } from './dto/get-properties.dto';
@@ -97,8 +97,8 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Парсинг данных с внешней страницы' })
   @ApiBody({ type: ParsePageDto })
   @ApiOkResponse({ description: 'Данные успешно спаршены' })
-  async parsePage(@Body() parsePageDto: ParsePageDto) {
-    return this.propertiesService.parsePage(parsePageDto);
+  async parsePage(@Body() parsePageDto: ParsePageDto, @Request() user) {
+    return this.propertiesService.parseAndCreateDraft(parsePageDto.url, user);
   }
 
   @Post()

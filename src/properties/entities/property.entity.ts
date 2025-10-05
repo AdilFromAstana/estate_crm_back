@@ -19,6 +19,7 @@ import { Amenity } from '../../common/enums/amenity.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { BuildingType } from 'src/common/enums/building-type.enum';
 import { Condition } from 'src/common/enums/condition.enum';
+import { Complex } from 'src/complexes/entities/complex.entity';
 
 @Entity()
 @Index(['agencyId', 'status'])
@@ -72,7 +73,7 @@ export class Property {
   tags: PropertyTag[];
 
   // Географические данные
-  @ApiProperty({ example: 'Алматы', description: 'Город' })
+  @ApiProperty({ example: 'Астана', description: 'Город' })
   @Column()
   city: string;
 
@@ -83,7 +84,7 @@ export class Property {
   @ManyToOne(() => City)
   cityRef: City;
 
-  @ApiProperty({ example: 'Медеуский', description: 'Район' })
+  @ApiProperty({ example: 'Нура р-н', description: 'Район' })
   @Column()
   district: string;
 
@@ -93,6 +94,17 @@ export class Property {
 
   @ManyToOne(() => District)
   districtRef: District;
+
+  @ApiProperty({ example: '12 месяцев', description: 'ЖК' })
+  @Column({ nullable: true })
+  complex: string;
+
+  @ApiProperty({ description: 'ID комплекса' })
+  @Column({ nullable: true })
+  complexId: number;
+
+  @ManyToOne(() => Complex)
+  complexRef: Complex;
 
   @ApiProperty({ example: 'проспект Абая 123', description: 'Адрес' })
   @Column()
