@@ -19,6 +19,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { join } from 'path';
 import { Complex } from './complexes/entities/complex.entity';
 import { ComplexesModule } from './complexes/complexes.module';
+import { FlatSecurity } from './flat-security/entities/flat-security.entity';
+import { FlatSecurityModule } from './flat-security/flat-security.module';
 
 @Module({
   imports: [
@@ -64,6 +66,7 @@ import { ComplexesModule } from './complexes/complexes.module';
             District,
             Selection,
             Complex,
+            FlatSecurity,
           ],
           synchronize: true,
         };
@@ -76,6 +79,7 @@ import { ComplexesModule } from './complexes/complexes.module';
     LocationsModule,
     SelectionsModule,
     ComplexesModule,
+    FlatSecurityModule,
     MulterModule.register({
       dest: join(__dirname, '..', 'uploads', 'images'), // папка для сохранения
     }),

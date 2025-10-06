@@ -36,13 +36,6 @@ export class PropertyNormalizerService {
         })
       : null;
 
-    const flat_renovation = [
-      { id: '1', name: 'свежий ремонт' },
-      { id: '2', name: 'не новый, но аккуратный ремонт' },
-      { id: '4', name: 'требует ремонта' },
-      { id: '5', name: 'свободная планировка' },
-      { id: '6', name: 'черновая отделка' },
-    ];
     const flat_phone = [
       { id: '1', name: 'отдельный' },
       { id: '2', name: 'блокиратор' },
@@ -94,16 +87,6 @@ export class PropertyNormalizerService {
       { id: '5', name: 'ковролан' },
       { id: '6', name: 'плитка' },
       { id: '7', name: 'пробковый' },
-    ];
-    const flat_security = [
-      { id: '1', name: 'решетки на окнах' },
-      { id: '2', name: 'охрана' },
-      { id: '3', name: 'домофон' },
-      { id: '4', name: 'кодовый замок' },
-      { id: '5', name: 'сигнализация' },
-      { id: '6', name: 'видеонаблюдение' },
-      { id: '7', name: 'видеодомофон' },
-      { id: '8', name: 'консьерж' },
     ];
     const flat_options = [
       { id: '1', name: 'пластиковые окна' },
