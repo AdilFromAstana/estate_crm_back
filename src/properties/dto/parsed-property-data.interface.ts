@@ -14,7 +14,7 @@ export interface ParsedPropertyData {
   totalFloors?: string;
   buildingType?: string;
   yearBuilt?: string;
-  condition?: string;
+  flatRenovation?: string;
   bathroom?: string;
   balcony?: string;
   parking?: string;

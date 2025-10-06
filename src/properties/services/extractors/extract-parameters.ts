@@ -28,12 +28,15 @@ export function extractParameters(document: Document) {
 
   return {
     buildingType: params['flat.building'] || '',
+    flatSecurity: params['flat.security'] || '',
+    flatPrivDorm: params['flat.priv_dorm'] || '',
     complex: params['map.complex'] || '',
     yearBuilt: params['house.year'] || '',
-    condition: params['flat.renovation'] || '',
+    flatRenovation: params['flat.renovation'] || '',
     bathroom: params['flat.toilet'] || '',
     balcony: params['flat.balcony'] || '',
     parking: params['flat.parking'] || '',
+    ceiling: params['ceiling'] || '',
     furniture: params['live.furniture'] || '',
     areaFull: params['live.square'] || '',
     floorInfo: params['flat.floor'] || '',

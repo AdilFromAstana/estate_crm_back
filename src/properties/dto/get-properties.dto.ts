@@ -15,8 +15,6 @@ import { Type } from 'class-transformer';
 import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
-import { BuildingType } from 'src/common/enums/building-type.enum';
-import { Condition } from 'src/common/enums/condition.enum';
 
 export class GetPropertiesDto {
   @ApiPropertyOptional({
@@ -149,12 +147,10 @@ export class GetPropertiesDto {
   maxFloor?: number;
 
   @IsOptional()
-  @IsEnum(BuildingType)
-  buildingType?: BuildingType;
+  buildingTypeCode?: string;
 
   @IsOptional()
-  @IsEnum(Condition)
-  condition?: Condition;
+  conditionCode?: string;
 
   @ApiPropertyOptional({
     example: 1,

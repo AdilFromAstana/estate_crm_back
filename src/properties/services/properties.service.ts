@@ -32,18 +32,18 @@ export class PropertiesService {
     user: User,
   ): Promise<Property> {
     const {
-      buildingType: buildingTypeArray,
-      condition: conditionArray,
+      buildingTypeCode: buildingTypeArray,
+      flatRenovationCode: flatRenovationArray,
       ...rest
     } = createPropertyDto;
 
-    const buildingType = Array.isArray(buildingTypeArray)
+    const buildingTypeCode = Array.isArray(buildingTypeArray)
       ? buildingTypeArray[0]
       : buildingTypeArray;
 
-    const condition = Array.isArray(conditionArray)
-      ? conditionArray[0]
-      : conditionArray;
+    const flatRenovationCode = Array.isArray(flatRenovationArray)
+      ? flatRenovationArray[0]
+      : flatRenovationArray;
 
     // Проверка прав доступа
     if (!this.canCreateProperty(user)) {
@@ -57,8 +57,8 @@ export class PropertiesService {
 
     const property = this.propertiesRepository.create({
       ...rest,
-      buildingType, // ← одно значение
-      condition, // ← одно значение
+      buildingTypeCode, // ← одно значение
+      flatRenovationCode, // ← одно значение
       ownerId: user.id,
       agencyId: user.agencyId,
       currency: createPropertyDto.currency || 'KZT',
@@ -88,8 +88,8 @@ export class PropertiesService {
       isPublished,
       agencyId,
       ownerId,
-      buildingType,
-      condition,
+      buildingTypeCode,
+      conditionCode,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
     } = query;
@@ -172,15 +172,18 @@ export class PropertiesService {
       queryBuilder.andWhere('property.floor <= :maxFloor', { maxFloor });
     }
 
-    if (buildingType && buildingType.length > 0) {
-      queryBuilder.andWhere('property.buildingType IN (:...buildingType)', {
-        buildingType,
-      });
+    if (buildingTypeCode && buildingTypeCode.length > 0) {
+      queryBuilder.andWhere(
+        'property.buildingTypeCode IN (:...buildingTypeCode)',
+        {
+          buildingTypeCode,
+        },
+      );
     }
 
-    if (condition && condition.length > 0) {
-      queryBuilder.andWhere('property.condition IN (:...condition)', {
-        condition,
+    if (conditionCode && conditionCode.length > 0) {
+      queryBuilder.andWhere('property.conditionCode IN (:...conditionCode)', {
+        conditionCode,
       });
     }
 
@@ -340,7 +343,6 @@ export class PropertiesService {
     status: PropertyStatus,
     user: User,
   ): Promise<Property> {
-    console.log('user: ', user);
     const property = await this.findOne(id, user);
 
     if (!this.canEditProperty(property, user)) {
@@ -393,8 +395,7 @@ export class PropertiesService {
   }
 
   async parseAndCreateDraft(url: string, user: User) {
-    console.log("url: ", url)
-    console.log("user: ", user)
+    console.log('url: ', url);
     const parsed = await this.parser.parse(url);
     console.log('parsed: ', parsed);
 

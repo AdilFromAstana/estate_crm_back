@@ -219,6 +219,25 @@ export class Property {
   @Column({ type: 'enum', enum: Condition, nullable: true })
   condition: Condition;
 
+  @Column({ nullable: true, default: '' })
+  buildingTypeCode: string;
+
+  // Состояние — ОДНО значение
+  @Column({ nullable: true, default: '' })
+  flatRenovationCode: string;
+
+  @Column({ nullable: true, default: '' })
+  flatParkingCode: string;
+
+  @Column({ nullable: true, default: '' })
+  liveFurnitureCode: string;
+
+  @Column({ nullable: true, default: '' })
+  flatToiletCode: string;
+
+  @Column({ type: 'simple-array', nullable: true })
+  flatSecurityCodes: string[];
+
   // Социальные сети для недвижимости (для шаринга)
   @ApiProperty({
     example: 'https://instagram.com/p/property123',

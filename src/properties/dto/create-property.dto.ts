@@ -17,8 +17,6 @@ import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
 import { Amenity } from '../../common/enums/amenity.enum';
-import { BuildingType } from 'src/common/enums/building-type.enum';
-import { Condition } from 'src/common/enums/condition.enum';
 
 export class CreatePropertyDto {
   @ApiProperty({
@@ -135,15 +133,13 @@ export class CreatePropertyDto {
   @Min(1800)
   yearBuilt?: number;
 
-  @ApiPropertyOptional({ example: 2020, description: 'BuildingType' })
+  @ApiPropertyOptional({ description: 'BuildingType' })
   @IsOptional()
-  @IsEnum(BuildingType, { each: true })
-  buildingType?: BuildingType[];
+  buildingTypeCode?: string;
 
-  @ApiPropertyOptional({ example: 2020, description: 'Condition' })
+  @ApiPropertyOptional({ description: 'Condition' })
   @IsOptional()
-  @IsEnum(Condition, { each: true })
-  condition?: Condition[];
+  flatRenovationCode?: string;
 
   // Финансовые данные
   @ApiProperty({ example: 25000000, description: 'Цена в тенге' })
