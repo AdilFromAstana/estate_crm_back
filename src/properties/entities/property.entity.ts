@@ -10,16 +10,13 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Agency } from '../../agencies/entities/agency.entity';
-import { City } from '../../locations/entities/city.entity';
-import { District } from '../../locations/entities/district.entity';
 import { PropertyType } from '../../common/enums/property-type.enum';
-import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
 import { Amenity } from '../../common/enums/amenity.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { BuildingType } from 'src/common/enums/building-type.enum';
 import { Condition } from 'src/common/enums/condition.enum';
-import { Complex } from 'src/complexes/entities/complex.entity';
+import { PropertyStatus } from '../enums/property-status.enum';
 
 @Entity()
 @Index(['agencyId', 'status'])
@@ -48,18 +45,18 @@ export class Property {
     enum: PropertyType,
     description: 'Тип недвижимости',
   })
-  @Column({ type: 'enum', enum: PropertyType })
+  @Column({ type: 'enum', enum: PropertyType, default: PropertyType.APARTMENT })
   type: PropertyType;
 
   @ApiProperty({
-    example: PropertyStatus.ACTIVE,
+    example: PropertyStatus.DRAFT,
     enum: PropertyStatus,
     description: 'Статус недвижимости',
   })
   @Column({
     type: 'enum',
     enum: PropertyStatus,
-    default: PropertyStatus.ACTIVE,
+    default: PropertyStatus.DRAFT,
   })
   status: PropertyStatus;
 
@@ -81,9 +78,6 @@ export class Property {
   @Column()
   cityId: number;
 
-  @ManyToOne(() => City)
-  cityRef: City;
-
   @ApiProperty({ example: 'Нура р-н', description: 'Район' })
   @Column()
   district: string;
@@ -91,9 +85,6 @@ export class Property {
   @ApiProperty({ description: 'ID района' })
   @Column()
   districtId: number;
-
-  @ManyToOne(() => District)
-  districtRef: District;
 
   @ApiProperty({ example: '12 месяцев', description: 'ЖК' })
   @Column({ nullable: true })
@@ -103,12 +94,9 @@ export class Property {
   @Column({ nullable: true })
   complexId: number;
 
-  @ManyToOne(() => Complex)
-  complexRef: Complex;
-
   @ApiProperty({ example: 'проспект Абая 123', description: 'Адрес' })
-  @Column()
-  address: string;
+  @Column({ nullable: true })
+  address?: string;
 
   @ApiProperty({ example: 43.2389, description: 'Широта' })
   @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
@@ -218,6 +206,9 @@ export class Property {
   // Состояние — ОДНО значение
   @Column({ type: 'enum', enum: Condition, nullable: true })
   condition: Condition;
+
+  @Column({ nullable: true, default: '' })
+  flatBalconyCode: string;
 
   @Column({ nullable: true, default: '' })
   buildingTypeCode: string;

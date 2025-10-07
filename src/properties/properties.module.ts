@@ -17,6 +17,7 @@ import { FlatParking } from 'src/flat-parking/entities/flat-parking.entity';
 import { FlatSecurity } from 'src/flat-security/entities/flat-security.entity';
 import { LiveFurniture } from 'src/live-furniture/entities/live-furniture.entity';
 import { FlatToilet } from 'src/flat-toilet/entities/flat-toilet.entity';
+import { FlatBalcony } from 'src/flat-balcony/entities/flat-balcony.entity';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { FlatToilet } from 'src/flat-toilet/entities/flat-toilet.entity';
       FlatSecurity,
       LiveFurniture,
       FlatToilet,
+      FlatBalcony
     ]),
   ],
   providers: [

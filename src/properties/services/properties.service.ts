@@ -13,7 +13,7 @@ import { UpdatePropertyDto } from '../dto/update-property.dto';
 import { GetPropertiesDto } from '../dto/get-properties.dto';
 import { User } from '../../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
-import { PropertyStatus } from '../../common/enums/property-status.enum';
+import { PropertyStatus } from '../enums/property-status.enum';
 import { PropertyTag } from 'src/common/enums/property-tag.enum';
 import { PropertyParserService } from './property-parser.service';
 import { PropertyNormalizerService } from './property-normalizer.service';

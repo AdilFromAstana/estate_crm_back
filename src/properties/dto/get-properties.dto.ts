@@ -13,8 +13,8 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PropertyType } from '../../common/enums/property-type.enum';
-import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
+import { PropertyStatus } from '../enums/property-status.enum';
 
 export class GetPropertiesDto {
   @ApiPropertyOptional({

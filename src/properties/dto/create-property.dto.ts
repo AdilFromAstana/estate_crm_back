@@ -14,9 +14,9 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PropertyType } from '../../common/enums/property-type.enum';
-import { PropertyStatus } from '../../common/enums/property-status.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
 import { Amenity } from '../../common/enums/amenity.enum';
+import { PropertyStatus } from '../enums/property-status.enum';
 
 export class CreatePropertyDto {
   @ApiProperty({

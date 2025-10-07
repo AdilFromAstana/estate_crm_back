@@ -11,6 +11,7 @@ import { FlatParking } from 'src/flat-parking/entities/flat-parking.entity';
 import { FlatSecurity } from 'src/flat-security/entities/flat-security.entity';
 import { LiveFurniture } from 'src/live-furniture/entities/live-furniture.entity';
 import { FlatToilet } from 'src/flat-toilet/entities/flat-toilet.entity';
+import { FlatBalcony } from 'src/flat-balcony/entities/flat-balcony.entity';
 
 interface ParsedAd {
   city?: string;
@@ -28,9 +29,11 @@ interface ParsedAd {
   area?: string;
   rooms?: string;
   bathroom?: string;
+  balcony?: string;
   yearBuilt?: string;
   photos?: string[];
   parameters?: Record<string, string>;
+  url?: string;
 }
 
 @Injectable()
@@ -56,6 +59,8 @@ export class PropertyNormalizerService {
     private readonly liveFurnitureRepo: Repository<LiveFurniture>,
     @InjectRepository(FlatToilet)
     private readonly flatToiletRepo: Repository<FlatToilet>,
+    @InjectRepository(FlatBalcony)
+    private readonly flatBalconyRepo: Repository<FlatBalcony>,
   ) {}
 
   async normalize(parsed: ParsedAd): Promise<Property> {
@@ -65,12 +70,11 @@ export class PropertyNormalizerService {
         })
       : null;
 
-    const district =
-      city && parsed.district
-        ? await this.districtRepo.findOne({
-            where: { name: ILike(`%${parsed.district}%`), cityId: city.id },
-          })
-        : null;
+    const district = parsed.district
+      ? await this.districtRepo.findOne({
+          where: { name: ILike(`%${parsed.district}%`) },
+        })
+      : null;
 
     const complex = parsed.complex
       ? await this.complexRepo.findOne({
@@ -81,6 +85,12 @@ export class PropertyNormalizerService {
     const flatToilet = parsed.bathroom
       ? await this.flatToiletRepo.findOne({
           where: { name: ILike(`%${parsed.bathroom}%`) },
+        })
+      : null;
+
+    const flatBalcony = parsed.balcony
+      ? await this.flatBalconyRepo.findOne({
+          where: { name: ILike(`%${parsed.balcony}%`) },
         })
       : null;
 
@@ -117,6 +127,8 @@ export class PropertyNormalizerService {
       parsed.rawTitle,
     );
 
+    console.log('district: ', district);
+
     return this.propertyRepo.create({
       title: parsed.rawTitle || '',
       description: parsed.description || '',
@@ -132,6 +144,7 @@ export class PropertyNormalizerService {
       flatSecurityCodes,
       liveFurnitureCode: liveFurniture?.code || '',
       flatToiletCode: flatToilet?.code || '',
+      flatBalconyCode: flatBalcony?.code || '',
       ceiling: this.parseCeiling(parsed.ceiling!) ?? 0,
       area: Number(area) || 0,
       price: Number(price) || 0,
@@ -144,6 +157,7 @@ export class PropertyNormalizerService {
       yearBuilt: Number(parsed.yearBuilt) || 1800,
       photos: parsed.photos || [],
       isPublished: false,
+      importUrl: parsed.url,
     });
   }
 

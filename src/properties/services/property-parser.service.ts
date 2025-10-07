@@ -27,7 +27,7 @@ export class PropertyParserService {
       const photos = extractPhotos(document);
       const description = extractDescription(document);
 
-      return { ...basic, ...params, photos, description };
+      return { ...basic, ...params, photos, description, url };
     } finally {
       await browser.close();
     }

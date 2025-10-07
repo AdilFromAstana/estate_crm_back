@@ -25,12 +25,12 @@ import { PropertiesService } from './services/properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { GetPropertiesDto } from './dto/get-properties.dto';
-import { PropertyStatus } from '../common/enums/property-status.enum';
 import { PropertyTag } from '../common/enums/property-tag.enum';
 import { ParsePageDto } from './dto/parse-page.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import * as cheerio from 'cheerio';
 import { OptionalJwtAuthGuard } from 'src/auth/optionalJwtAuthGuard';
+import { PropertyStatus } from './enums/property-status.enum';
 
 @ApiTags('Недвижимость')
 @ApiBearerAuth()
