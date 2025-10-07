@@ -15,7 +15,6 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
-import { Amenity } from '../../common/enums/amenity.enum';
 import { PropertyStatus } from '../enums/property-status.enum';
 
 export class CreatePropertyDto {
@@ -156,43 +155,6 @@ export class CreatePropertyDto {
   @IsOptional()
   @IsString()
   currency?: string;
-
-  // Удобства
-  @ApiPropertyOptional({
-    example: [Amenity.INTERNET, Amenity.REFRIGERATOR, Amenity.FLOOR_HEATING],
-    enum: Amenity,
-    isArray: true,
-    description: 'Удобства',
-  })
-  @IsOptional()
-  @IsArray()
-  @ArrayUnique()
-  @IsEnum(Amenity, { each: true })
-  amenities?: Amenity[];
-
-  // Дополнительные данные
-  @ApiPropertyOptional({ example: true, description: 'Наличие балкона' })
-  @IsOptional()
-  @IsBoolean()
-  hasBalcony?: boolean;
-
-  @ApiPropertyOptional({ example: true, description: 'Наличие парковки' })
-  @IsOptional()
-  @IsBoolean()
-  hasParking?: boolean;
-
-  @ApiPropertyOptional({ example: true, description: 'Наличие лифта' })
-  @IsOptional()
-  @IsBoolean()
-  hasElevator?: boolean;
-
-  @ApiPropertyOptional({
-    example: 'https://example.com/photo1.jpg',
-    description: 'URL главного фото',
-  })
-  @IsOptional()
-  @IsUrl()
-  mainPhoto?: string;
 
   @ApiPropertyOptional({
     example: [

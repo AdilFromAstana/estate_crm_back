@@ -43,14 +43,6 @@ export class GetPropertiesDto {
   limit?: number = 10;
 
   @ApiPropertyOptional({
-    example: 'алматы',
-    description: 'Поиск по городу, району, адресу',
-  })
-  @IsOptional()
-  @IsString()
-  search?: string;
-
-  @ApiPropertyOptional({
     example: PropertyType.APARTMENT,
     description: 'Фильтр по типу недвижимости',
     enum: PropertyType,
@@ -147,10 +139,38 @@ export class GetPropertiesDto {
   maxFloor?: number;
 
   @IsOptional()
-  buildingTypeCode?: string;
+  @Type(() => Number)
+  @IsInt()
+  minCeiling?: number;
 
   @IsOptional()
-  conditionCode?: string;
+  @Type(() => Number)
+  @IsInt()
+  maxCeiling?: number;
+
+  @IsOptional()
+  complexId?: number;
+
+  @IsOptional()
+  buildingTypeCodes?: string[];
+
+  @IsOptional()
+  flatRenovationCodes?: string[];
+
+  @IsOptional()
+  flatParkingCodes?: string[];
+
+  @IsOptional()
+  flatSecurityCodes?: string[];
+
+  @IsOptional()
+  liveFurnitureCodes?: string[];
+
+  @IsOptional()
+  flatToiletCodes?: string[];
+
+  @IsOptional()
+  flatBalconyCodes?: string[];
 
   @ApiPropertyOptional({
     example: 1,

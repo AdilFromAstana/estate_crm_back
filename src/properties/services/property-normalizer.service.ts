@@ -63,7 +63,7 @@ export class PropertyNormalizerService {
     private readonly flatBalconyRepo: Repository<FlatBalcony>,
   ) {}
 
-  async normalize(parsed: ParsedAd): Promise<Property> {
+  async normalize(parsed: ParsedAd): Promise<any> {
     const city = parsed.city
       ? await this.cityRepo.findOne({
           where: { name: ILike(`%${parsed.city}%`) },
@@ -127,9 +127,7 @@ export class PropertyNormalizerService {
       parsed.rawTitle,
     );
 
-    console.log('district: ', district);
-
-    return this.propertyRepo.create({
+    return {
       title: parsed.rawTitle || '',
       description: parsed.description || '',
       city: city?.name || parsed.city || '',
@@ -158,7 +156,7 @@ export class PropertyNormalizerService {
       photos: parsed.photos || [],
       isPublished: false,
       importUrl: parsed.url,
-    });
+    };
   }
 
   private parseCeiling(value: string): number | null {

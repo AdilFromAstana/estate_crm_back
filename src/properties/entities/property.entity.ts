@@ -12,10 +12,7 @@ import { User } from '../../users/entities/user.entity';
 import { Agency } from '../../agencies/entities/agency.entity';
 import { PropertyType } from '../../common/enums/property-type.enum';
 import { PropertyTag } from '../../common/enums/property-tag.enum';
-import { Amenity } from '../../common/enums/amenity.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { BuildingType } from 'src/common/enums/building-type.enum';
-import { Condition } from 'src/common/enums/condition.enum';
 import { PropertyStatus } from '../enums/property-status.enum';
 
 @Entity()
@@ -79,11 +76,11 @@ export class Property {
   cityId: number;
 
   @ApiProperty({ example: 'Нура р-н', description: 'Район' })
-  @Column()
+  @Column({ nullable: true })
   district: string;
 
   @ApiProperty({ description: 'ID района' })
-  @Column()
+  @Column({ nullable: true })
   districtId: number;
 
   @ApiProperty({ example: '12 месяцев', description: 'ЖК' })
@@ -150,43 +147,12 @@ export class Property {
   @ManyToOne(() => Agency, (agency) => agency.id)
   agency: Agency;
 
-  // Удобства
-  @ApiProperty({
-    example: [Amenity.INTERNET, Amenity.REFRIGERATOR, Amenity.FLOOR_HEATING],
-    enum: Amenity,
-    isArray: true,
-    description: 'Удобства',
-  })
-  @Column({ type: 'simple-array', nullable: true })
-  amenities: Amenity[];
-
-  // Дополнительные данные
-  @ApiProperty({ example: true, description: 'Наличие балкона' })
-  @Column({ default: false })
-  hasBalcony: boolean;
-
-  @ApiProperty({ example: true, description: 'Наличие парковки' })
-  @Column({ default: false })
-  hasParking: boolean;
-
-  @ApiProperty({ example: true, description: 'Наличие лифта' })
-  @Column({ default: false })
-  hasElevator: boolean;
-
   @ApiProperty({
     example: 2.8,
     description: 'Высота потолков в метрах',
   })
   @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
   ceiling: number;
-
-  @ApiProperty({
-    example: 'https://example.com/photo1.jpg',
-    description: 'URL главного фото',
-    required: false,
-  })
-  @Column({ nullable: true })
-  mainPhoto: string;
 
   @ApiProperty({
     example: [
@@ -199,13 +165,6 @@ export class Property {
   })
   @Column({ type: 'simple-array', nullable: true })
   photos: string[];
-
-  @Column({ type: 'enum', enum: BuildingType, nullable: true })
-  buildingType: BuildingType;
-
-  // Состояние — ОДНО значение
-  @Column({ type: 'enum', enum: Condition, nullable: true })
-  condition: Condition;
 
   @Column({ nullable: true, default: '' })
   flatBalconyCode: string;

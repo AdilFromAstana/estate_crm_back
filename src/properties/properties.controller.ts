@@ -94,11 +94,18 @@ export class PropertiesController {
   }
 
   @Post('parse')
+  @UseGuards(JwtAuthGuard) // ← обязательно!
   @ApiOperation({ summary: 'Парсинг данных с внешней страницы' })
   @ApiBody({ type: ParsePageDto })
   @ApiOkResponse({ description: 'Данные успешно спаршены' })
-  async parsePage(@Body() parsePageDto: ParsePageDto, @Request() user) {
-    return this.propertiesService.parseAndCreateDraft(parsePageDto.url, user);
+  async parsePage(
+    @Body(ValidationPipe) parsePageDto: ParsePageDto,
+    @Request() req,
+  ) {
+    return this.propertiesService.parseAndCreateDraft(
+      parsePageDto.url,
+      req.user,
+    );
   }
 
   @Post()
@@ -121,7 +128,7 @@ export class PropertiesController {
     @Query(ValidationPipe) query: GetPropertiesDto,
     @Request() req,
   ) {
-    return this.propertiesService.findAll(query, req.user ?? null);
+    return this.propertiesService.findAll(query, req.user);
   }
 
   @Get(':id')

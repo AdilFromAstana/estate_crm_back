@@ -72,24 +72,31 @@ export class PropertiesService {
     const {
       page = 1,
       limit = 10,
-      search,
       type,
       status,
       tags,
       cityId,
       districtId,
+      complexId,
       minPrice,
       maxPrice,
       minFloor,
       maxFloor,
       minArea,
       maxArea,
+      maxCeiling,
+      minCeiling,
       rooms,
       isPublished,
       agencyId,
       ownerId,
-      buildingTypeCode,
-      conditionCode,
+      buildingTypeCodes,
+      flatRenovationCodes,
+      flatBalconyCodes,
+      flatParkingCodes,
+      flatSecurityCodes,
+      flatToiletCodes,
+      liveFurnitureCodes,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
     } = query;
@@ -102,27 +109,16 @@ export class PropertiesService {
       .leftJoinAndSelect('property.agency', 'agency');
 
     // 🔑 Логика фильтрации по ролям
+    console.log(user);
     if (!user) {
       queryBuilder.andWhere('property.isPublished = true');
+      queryBuilder.andWhere('property.status = active');
     }
 
-    // 🔍 Поиск по тексту
-    if (search) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('property.title ILIKE :search', { search: `%${search}%` })
-            .orWhere('property.description ILIKE :search', {
-              search: `%${search}%`,
-            })
-            .orWhere('property.city ILIKE :search', { search: `%${search}%` })
-            .orWhere('property.district ILIKE :search', {
-              search: `%${search}%`,
-            })
-            .orWhere('property.address ILIKE :search', {
-              search: `%${search}%`,
-            });
-        }),
-      );
+    if (isPublished !== undefined) {
+      queryBuilder.andWhere('property.isPublished = :isPublished', {
+        isPublished,
+      });
     }
 
     // 🧩 Фильтры (оставляем как есть)
@@ -149,12 +145,26 @@ export class PropertiesService {
       });
     }
 
+    if (complexId !== undefined) {
+      queryBuilder.andWhere('property.complexId = :complexId', {
+        complexId,
+      });
+    }
+
     if (minPrice !== undefined) {
       queryBuilder.andWhere('property.price >= :minPrice', { minPrice });
     }
 
     if (maxPrice !== undefined) {
       queryBuilder.andWhere('property.price <= :maxPrice', { maxPrice });
+    }
+
+    if (minCeiling !== undefined) {
+      queryBuilder.andWhere('property.price >= :minCeiling', { minCeiling });
+    }
+
+    if (maxCeiling !== undefined) {
+      queryBuilder.andWhere('property.price <= :maxCeiling', { maxCeiling });
     }
 
     if (minArea !== undefined) {
@@ -172,32 +182,68 @@ export class PropertiesService {
       queryBuilder.andWhere('property.floor <= :maxFloor', { maxFloor });
     }
 
-    if (buildingTypeCode && buildingTypeCode.length > 0) {
+    if (flatSecurityCodes && flatSecurityCodes.length > 0) {
       queryBuilder.andWhere(
-        'property.buildingTypeCode IN (:...buildingTypeCode)',
+        'property.flatSecurityCodes IN (:...flatSecurityCodes)',
         {
-          buildingTypeCode,
+          flatSecurityCodes,
         },
       );
     }
 
-    if (conditionCode && conditionCode.length > 0) {
-      queryBuilder.andWhere('property.conditionCode IN (:...conditionCode)', {
-        conditionCode,
+    if (buildingTypeCodes && buildingTypeCodes.length > 0) {
+      queryBuilder.andWhere(
+        'property.buildingTypeCode IN (:...buildingTypeCode)',
+        {
+          buildingTypeCodes,
+        },
+      );
+    }
+
+    if (flatRenovationCodes && flatRenovationCodes.length > 0) {
+      queryBuilder.andWhere(
+        'property.flatRenovationCode IN (:...flatRenovationCode)',
+        {
+          flatRenovationCodes,
+        },
+      );
+    }
+
+    if (flatToiletCodes && flatToiletCodes.length > 0) {
+      queryBuilder.andWhere('property.flatToiletCode IN (:...flatToiletCode)', {
+        flatToiletCodes,
       });
+    }
+
+    if (flatParkingCodes && flatParkingCodes.length > 0) {
+      queryBuilder.andWhere(
+        'property.flatParkingCode IN (:...flatParkingCode)',
+        {
+          flatParkingCodes,
+        },
+      );
+    }
+
+    if (liveFurnitureCodes && liveFurnitureCodes.length > 0) {
+      queryBuilder.andWhere(
+        'property.liveFurnitureCode IN (:...liveFurnitureCode)',
+        {
+          liveFurnitureCodes,
+        },
+      );
+    }
+
+    if (flatBalconyCodes && flatBalconyCodes.length > 0) {
+      queryBuilder.andWhere(
+        'property.flatBalconyCode IN (:...flatBalconyCode)',
+        {
+          flatBalconyCodes,
+        },
+      );
     }
 
     if (rooms !== undefined) {
       queryBuilder.andWhere('property.rooms = :rooms', { rooms });
-    }
-
-    // ⚠️ Важно: для гостей игнорируем isPublished=false, но для авторизованных — учитываем
-    if (user) {
-      if (isPublished !== undefined) {
-        queryBuilder.andWhere('property.isPublished = :isPublished', {
-          isPublished,
-        });
-      }
     }
 
     // 🔒 Дополнительные фильтры для авторизованных
@@ -395,12 +441,16 @@ export class PropertiesService {
   }
 
   async parseAndCreateDraft(url: string, user: User) {
-    console.log('url: ', url);
+    const isAlreadyImported = await this.propertiesRepository.findOne({
+      where: { importUrl: url },
+    });
+    if (isAlreadyImported) {
+      throw new BadRequestException(
+        'Этот объект с крышы уже был добавлен в систему!',
+      );
+    }
     const parsed = await this.parser.parse(url);
-    console.log('parsed: ', parsed);
-
     const draft = await this.normalizer.normalize(parsed);
-    console.log('draft: ', draft);
 
     draft.ownerId = user.id;
     draft.agencyId = user.agencyId;
