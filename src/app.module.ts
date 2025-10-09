@@ -125,7 +125,7 @@ import { FlatBuildingModule } from './flat-building/flat-building.module';
     LiveFurnitureModule,
     FlatBuildingModule,
     MulterModule.register({
-      dest: join(__dirname, '..', 'uploads', 'images'), // папка для сохранения
+      dest: join(__dirname, '../..', 'uploads', 'images'), // папка для сохранения
     }),
   ],
 })
