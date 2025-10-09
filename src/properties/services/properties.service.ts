@@ -112,7 +112,9 @@ export class PropertiesService {
     console.log(user);
     if (!user) {
       queryBuilder.andWhere('property.isPublished = true');
-      queryBuilder.andWhere('property.status = active');
+      queryBuilder.andWhere(`property.status = :status`, {
+        status: PropertyStatus.ACTIVE,
+      });
     }
 
     if (isPublished !== undefined) {
