@@ -100,46 +100,35 @@ export class SelectionsService {
   }
 
   // Получение объектов по подборке (универсальный метод)
-  async getPropertiesForSelection(
-    selectionId: number,
-    user: User,
-  ): Promise<any> {
+  async getPropertiesForSelection(selectionId: number, user: User) {
     const selection = await this.findOne(selectionId);
 
-    // 1. Подборка по конкретным объектам
+    // 1️⃣ Если есть propertyIds
     if (selection.propertyIds && selection.propertyIds.length > 0) {
-      const ids = selection.propertyIds.map((id) => Number(id));
+      const ids = selection.propertyIds.map(Number);
       const data = await this.propertiesService.findByIds(ids);
-      return {
-        data,
-        total: data.length,
-        type: 'byIds',
-      };
+      return { data, total: data.length, type: 'byIds' };
     }
 
-    // 2. Подборка по фильтрам
+    // 2️⃣ Если есть filters (т.е. сохранённый запрос)
     if (selection.filters) {
-      const filters = this.transformFilters(selection.filters);
-
-      // ⚡️ ВАЖНО: используем findAll, не getAll
-      const { data, total } = await this.propertiesService.findAll(
-        filters,
-        user,
-      );
+      const { data, total, page, totalPages } =
+        await this.propertiesService.findAll(selection.filters, user);
 
       return {
-        data,
-        total,
+        selection,
+        properties: {
+          data,
+          total,
+          page,
+          totalPages,
+        },
         type: 'byFilters',
       };
     }
 
-    // 3. Пустая подборка
-    return {
-      data: [],
-      total: 0,
-      type: 'empty',
-    };
+    // 3️⃣ Пустая подборка
+    return { data: [], total: 0, type: 'empty' };
   }
 
   // Преобразование фильтров в формат PropertiesService

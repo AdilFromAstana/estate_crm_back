@@ -10,6 +10,7 @@ import {
   Query,
   ValidationPipe,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,6 +21,8 @@ import {
 import { SelectionsService } from './selections.service';
 import { CreateSelectionDto } from './dto/create-selection.dto';
 import { UpdateSelectionDto } from './dto/update-selection.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from 'src/auth/optionalJwtAuthGuard';
 
 @ApiTags('Подборки')
 @ApiBearerAuth()
@@ -28,6 +31,7 @@ export class SelectionsController {
   constructor(private readonly selectionsService: SelectionsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Создание новой подборки (по фильтрам или ID объектов)',
   })
@@ -54,11 +58,12 @@ export class SelectionsController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получение информации о подборке' })
   @ApiResponse({ status: 200, description: 'Информация о подборке' })
   @ApiResponse({ status: 404, description: 'Подборка не найдена' })
   async findOne(@Param('id') id: string, @Request() req) {
-    return this.selectionsService.findOne(+id);
+    return this.selectionsService.getPropertiesForSelection(+id, req.user);
   }
 
   @Get(':id/properties')
