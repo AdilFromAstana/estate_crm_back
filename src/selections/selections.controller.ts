@@ -11,18 +11,21 @@ import {
   ValidationPipe,
   Request,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { SelectionsService } from './selections.service';
 import { CreateSelectionDto } from './dto/create-selection.dto';
 import { UpdateSelectionDto } from './dto/update-selection.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from 'src/auth/optionalJwtAuthGuard';
+import { SelectionWithPropertiesResponseDto } from './dto/selection-properties-response.dto';
 
 @ApiTags('Подборки')
 @ApiBearerAuth()
@@ -44,33 +47,26 @@ export class SelectionsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Получение списка подборок пользователя' })
+  @ApiOperation({ summary: 'Получение списка подборок с фильтрами и ролями' })
   @ApiResponse({ status: 200, description: 'Список подборок' })
-  async findAll(@Query('sharedOnly') sharedOnly: boolean, @Request() req) {
-    return this.selectionsService.findAll(req.user, sharedOnly);
-  }
-
-  @Get('shared')
-  @ApiOperation({ summary: 'Получение публичных подборок' })
-  @ApiResponse({ status: 200, description: 'Список публичных подборок' })
-  async getSharedSelections() {
-    return this.selectionsService.getSharedSelections();
-  }
-
-  @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Получение информации о подборке' })
-  @ApiResponse({ status: 200, description: 'Информация о подборке' })
-  @ApiResponse({ status: 404, description: 'Подборка не найдена' })
-  async findOne(@Param('id') id: string, @Request() req) {
-    return this.selectionsService.getPropertiesForSelection(+id, req.user);
+  async findAll(@Query() query: any, @Request() req) {
+    return this.selectionsService.findAll(query, req.user);
   }
 
-  @Get(':id/properties')
-  @ApiOperation({ summary: 'Получение объектов недвижимости по подборке' })
-  @ApiResponse({ status: 200, description: 'Список объектов недвижимости' })
-  async getPropertiesForSelection(@Param('id') id: string, @Request() req) {
-    return this.selectionsService.getPropertiesForSelection(+id, req.user);
+  @ApiOkResponse({
+    type: SelectionWithPropertiesResponseDto,
+    description: 'Подборка с объектами недвижимости и информацией об авторе',
+  })
+  @Get(':id')
+  async(
+    @Param('id') id: number,
+    @Req() req: any,
+  ): Promise<SelectionWithPropertiesResponseDto> {
+    return this.selectionsService.getPropertiesForSelection(
+      Number(id),
+      req.user,
+    );
   }
 
   @Put(':id')

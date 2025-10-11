@@ -7,8 +7,10 @@ import {
   IsOptional,
   ArrayUnique,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateSelectionDto {
   @ApiProperty({
@@ -33,16 +35,19 @@ export class CreateSelectionDto {
   })
   @IsOptional()
   @IsObject()
-  filters?: any;
+  filters?: Record<string, any>;
 
   @ApiPropertyOptional({
     example: [1, 2, 3],
     description: 'ID конкретных объектов недвижимости',
     isArray: true,
+    type: Number,
   })
   @IsOptional()
   @IsArray()
   @ArrayUnique()
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
   propertyIds?: number[];
 
   @ApiPropertyOptional({

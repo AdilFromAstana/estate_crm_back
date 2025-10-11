@@ -12,6 +12,7 @@ import { CreateSelectionDto } from './dto/create-selection.dto';
 import { UpdateSelectionDto } from './dto/update-selection.dto';
 import { User } from '../users/entities/user.entity';
 import { PropertiesService } from 'src/properties/services/properties.service';
+import { SelectionWithPropertiesResponseDto } from './dto/selection-properties-response.dto';
 
 @Injectable()
 export class SelectionsService {
@@ -53,17 +54,97 @@ export class SelectionsService {
     return this.selectionsRepository.save(selection);
   }
 
-  async findAll(user: User, sharedOnly: boolean = false): Promise<Selection[]> {
-    const where: any = { userId: user.id, isActive: true };
+  async findAll(query: any, user?: User): Promise<any> {
+    const { page = 1, limit = 20, isShared, agencyId, userId, search } = query;
 
-    if (sharedOnly) {
-      where.isShared = true;
+    const skip = (page - 1) * limit;
+
+    const qb = this.selectionsRepository
+      .createQueryBuilder('selection')
+      .leftJoinAndSelect('selection.user', 'user')
+      .leftJoinAndSelect('user.agency', 'agency')
+      .where('selection.isActive = true');
+
+    // 👇 Проверяем роли
+    if (user) {
+      const hasRole = (roleName: string) =>
+        Array.isArray(user.roles) &&
+        user?.roles.some((r) => r.name === roleName);
+
+      // 🔒 Ограничения по ролям
+      // — AGENT → только свои подборки
+      // — AGENCY_ADMIN → подборки всех агентов своего агентства
+      // — ADMIN / SUPERADMIN → все
+      if (hasRole('agent')) {
+        qb.andWhere('selection.userId = :userId', { userId: user.id });
+      } else if (hasRole('agency_admin')) {
+        qb.andWhere('user.agencyId = :agencyId', { agencyId: user.agencyId });
+      } else if (hasRole('admin') || hasRole('superadmin')) {
+        // видит всё — ничего не ограничиваем
+      } else {
+        // если нет ролей — показываем только свои
+        qb.andWhere('selection.userId = :userId', { userId: user.id });
+      }
     }
 
-    return this.selectionsRepository.find({
-      where,
-      order: { createdAt: 'DESC' },
-    });
+    // 🔹 Фильтр по агентству (если указан явно в query)
+    if (agencyId) {
+      qb.andWhere('user.agencyId = :agencyId', { agencyId });
+    }
+
+    // 🔹 Фильтр по конкретному пользователю
+    if (userId) {
+      qb.andWhere('selection.userId = :userId', { userId });
+    }
+
+    // 🔹 Фильтр по публичности
+    if (isShared !== undefined) {
+      qb.andWhere('selection.isShared = :isShared', { isShared });
+    }
+
+    // 🔹 Поиск по названию или описанию
+    if (search) {
+      qb.andWhere(
+        '(selection.name ILIKE :search OR selection.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    qb.orderBy('selection.createdAt', 'DESC');
+
+    const [data, total] = await qb.skip(skip).take(limit).getManyAndCount();
+
+    // 📦 Преобразуем в DTO-подобный формат
+    const formatted = data.map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      isShared: s.isShared,
+      createdAt: s.createdAt.toISOString(),
+      user: s.user
+        ? {
+            id: s.user.id,
+            firstName: s.user.firstName,
+            lastName: s.user.lastName,
+            phone: s.user.phone,
+            avatar: s.user.avatar,
+            agency: s.user.agency
+              ? {
+                  id: s.user.agency.id,
+                  name: s.user.agency.name,
+                }
+              : null,
+          }
+        : null,
+    }));
+
+    return {
+      data: formatted,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Selection> {
@@ -99,70 +180,73 @@ export class SelectionsService {
     await this.selectionsRepository.save(selection);
   }
 
-  // Получение объектов по подборке (универсальный метод)
-  async getPropertiesForSelection(selectionId: number, user: User) {
-    const selection = await this.findOne(selectionId);
+  async getPropertiesForSelection(
+    selectionId: number,
+    user: User,
+  ): Promise<SelectionWithPropertiesResponseDto> {
+    const selection = await this.selectionsRepository.findOne({
+      where: { id: selectionId, isActive: true },
+      relations: ['user'],
+    });
 
-    // 1️⃣ Если есть propertyIds
-    if (selection.propertyIds && selection.propertyIds.length > 0) {
-      const ids = selection.propertyIds.map(Number);
-      const data = await this.propertiesService.findByIds(ids);
-      return { data, total: data.length, type: 'byIds' };
+    if (!selection) {
+      throw new NotFoundException('Подборка не найдена');
     }
 
-    // 2️⃣ Если есть filters (т.е. сохранённый запрос)
+    const createdBy = {
+      id: selection.user.id,
+      firstName: selection.user.firstName,
+      lastName: selection.user.lastName,
+      phone: selection.user.phone,
+      avatar: selection.user.avatar,
+      email: selection.user.email,
+    };
+
+    // 🎯 нормализуем "selection"
+    const selectionDto = {
+      id: selection.id,
+      name: selection.name,
+      description: selection.description,
+      filters: selection.filters,
+      propertyIds: selection.propertyIds,
+      isShared: selection.isShared,
+      isActive: selection.isActive,
+      createdAt: selection.createdAt,
+      updatedAt: selection.updatedAt,
+    };
+
+    // 🔹 1. Если ручной список ID
+    if (selection.propertyIds?.length) {
+      const ids = selection.propertyIds.map(Number);
+      const data = await this.propertiesService.findByIds(ids);
+
+      return {
+        selection: selectionDto,
+        properties: { data, total: data.length },
+        type: 'byIds',
+        createdBy,
+      };
+    }
+
+    // 🔹 2. Если фильтры
     if (selection.filters) {
       const { data, total, page, totalPages } =
         await this.propertiesService.findAll(selection.filters, user);
 
       return {
-        selection,
-        properties: {
-          data,
-          total,
-          page,
-          totalPages,
-        },
+        selection: selectionDto,
+        properties: { data, total, page, totalPages },
         type: 'byFilters',
+        createdBy,
       };
     }
 
-    // 3️⃣ Пустая подборка
-    return { data: [], total: 0, type: 'empty' };
-  }
-
-  // Преобразование фильтров в формат PropertiesService
-  private transformFilters(filters: any): any {
-    const transformed: any = {};
-
-    // Пример преобразования:
-    if (filters.rooms) {
-      transformed.rooms = filters.rooms;
-    }
-
-    if (filters.maxPrice) {
-      transformed.maxPrice = filters.maxPrice;
-    }
-
-    if (filters.minPrice) {
-      transformed.minPrice = filters.minPrice;
-    }
-
-    if (filters.district) {
-      transformed.district = filters.district;
-    }
-
-    // Добавьте другие преобразования по необходимости
-
-    return transformed;
-  }
-
-  // Получение публичных подборок
-  async getSharedSelections(): Promise<Selection[]> {
-    return this.selectionsRepository.find({
-      where: { isShared: true, isActive: true },
-      order: { createdAt: 'DESC' },
-      take: 20,
-    });
+    // 🔹 3. Пустая подборка
+    return {
+      selection: selectionDto,
+      properties: { data: [], total: 0 },
+      type: 'empty',
+      createdBy,
+    };
   }
 }
