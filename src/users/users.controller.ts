@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -53,7 +54,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const url = `/avatars/${file.filename}`;
-    
+
     await this.usersService.updateAvatar(id, url);
     return { url };
   }
@@ -69,6 +70,19 @@ export class UsersController {
   })
   async findAll(@Query(ValidationPipe) query: GetUsersDto) {
     return this.usersService.findAll(query);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({
+    summary: 'Изменение статуса пользователя (активация / деактивация)',
+  })
+  @ApiResponse({ status: 200, description: 'Статус успешно изменён' })
+  @ApiResponse({ status: 404, description: 'Пользователь не найден' })
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('isActive') isActive: boolean,
+  ) {
+    return this.usersService.updateStatus(id, isActive);
   }
 
   @Get(':id')

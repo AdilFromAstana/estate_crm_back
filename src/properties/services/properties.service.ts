@@ -385,7 +385,6 @@ export class PropertiesService {
     return this.canEditProperty(property, user);
   }
 
-  // Специальные методы для изменения статуса
   async updateStatus(
     id: number,
     status: PropertyStatus,

@@ -31,6 +31,19 @@ export class ComplexesService {
     return this.complexesRepository.save(entities);
   }
 
+  async searchByName(query: string): Promise<Pick<Complex, 'id' | 'name'>[]> {
+    if (!query || query.length < 2) {
+      return []; // слишком короткий запрос — не ищем
+    }
+
+    return this.complexesRepository.find({
+      where: { name: ILike(`%${query}%`), isActive: true },
+      select: ['id', 'name'], // 👈 только нужные поля
+      take: 10, // максимум 10 подсказок
+      order: { name: 'ASC' },
+    });
+  }
+
   async findByName(name: string): Promise<Complex | null> {
     return this.complexesRepository.findOne({
       where: { name, isActive: true },

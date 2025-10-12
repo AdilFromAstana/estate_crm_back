@@ -25,9 +25,15 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  // ================================
-  // 🔐 Методы для AuthService (новые)
-  // ================================
+  async updateStatus(id: number, isActive: boolean): Promise<User> {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    user.isActive = isActive;
+    return this.usersRepository.save(user);
+  }
 
   async updateAvatar(userId: number, fileName: string) {
     const user = await this.findOneById(userId);
@@ -145,10 +151,6 @@ export class UsersService {
     user.refreshToken = ''; // инвалидация сессий
     await this.usersRepository.save(user);
   }
-
-  // ================================
-  // 👤 Существующие методы (управление пользователями)
-  // ================================
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.usersRepository.findOne({

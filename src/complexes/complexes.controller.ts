@@ -28,6 +28,12 @@ export class ComplexesController {
     return this.complexesService.bulkCreate();
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Поиск ЖК по названию (для автодополнения)' })
+  async search(@Query('q') q: string) {
+    return this.complexesService.searchByName(q);
+  }
+
   @Get('by-name/:name')
   @ApiOperation({ summary: 'Поиск ЖК по точному названию' })
   async findByName(@Param('name') name: string) {
