@@ -25,7 +25,7 @@ export class PropertiesService {
     private propertiesRepository: Repository<Property>,
     private readonly parser: PropertyParserService,
     private readonly normalizer: PropertyNormalizerService,
-  ) {}
+  ) { }
 
   async create(
     createPropertyDto: CreatePropertyDto,
@@ -141,7 +141,7 @@ export class PropertiesService {
       queryBuilder.andWhere('property.cityId = :cityId', { cityId });
     }
 
-    if (districtId !== undefined) {
+    if (districtId) {
       queryBuilder.andWhere('property.districtId = :districtId', {
         districtId,
       });
@@ -153,7 +153,7 @@ export class PropertiesService {
       });
     }
 
-    if (minPrice !== undefined) {
+    if (minPrice) {
       queryBuilder.andWhere('property.price >= :minPrice', { minPrice });
     }
 
@@ -162,11 +162,11 @@ export class PropertiesService {
     }
 
     if (minCeiling !== undefined) {
-      queryBuilder.andWhere('property.price >= :minCeiling', { minCeiling });
+      queryBuilder.andWhere('property.ceiling >= :minCeiling', { minCeiling });
     }
 
     if (maxCeiling !== undefined) {
-      queryBuilder.andWhere('property.price <= :maxCeiling', { maxCeiling });
+      queryBuilder.andWhere('property.ceiling <= :maxCeiling', { maxCeiling });
     }
 
     if (minArea !== undefined) {
@@ -259,7 +259,6 @@ export class PropertiesService {
       queryBuilder.andWhere('property.ownerId = :ownerId', { ownerId });
     }
 
-    // 📊 Сортировка
     const allowedSortFields = ['price', 'area', 'createdAt'];
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
     queryBuilder.orderBy(`property.${sortField}`, sortOrder);
@@ -366,8 +365,8 @@ export class PropertiesService {
       const userRoles = user.roles.map((r) => r.name).join(', ');
       throw new ForbiddenException(
         `У пользователя ID: ${user.id} недостаточно прав. ` +
-          `Ваши роли: [${userRoles}]. ` +
-          `Требуются роли: [${allowedRoles.join(', ')}].`,
+        `Ваши роли: [${userRoles}]. ` +
+        `Требуются роли: [${allowedRoles.join(', ')}].`,
       );
     }
 
