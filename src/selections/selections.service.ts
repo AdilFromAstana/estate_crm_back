@@ -20,7 +20,7 @@ export class SelectionsService {
     @InjectRepository(Selection)
     private selectionsRepository: Repository<Selection>,
     private readonly propertiesService: PropertiesService,
-  ) {}
+  ) { }
 
   async create(
     createSelectionDto: CreateSelectionDto,
@@ -123,18 +123,18 @@ export class SelectionsService {
       createdAt: s.createdAt.toISOString(),
       user: s.user
         ? {
-            id: s.user.id,
-            firstName: s.user.firstName,
-            lastName: s.user.lastName,
-            phone: s.user.phone,
-            avatar: s.user.avatar,
-            agency: s.user.agency
-              ? {
-                  id: s.user.agency.id,
-                  name: s.user.agency.name,
-                }
-              : null,
-          }
+          id: s.user.id,
+          firstName: s.user.firstName,
+          lastName: s.user.lastName,
+          phone: s.user.phone,
+          avatar: s.user.avatar,
+          agency: s.user.agency
+            ? {
+              id: s.user.agency.id,
+              name: s.user.agency.name,
+            }
+            : null,
+        }
         : null,
     }));
 
@@ -183,6 +183,7 @@ export class SelectionsService {
   async getPropertiesForSelection(
     selectionId: number,
     user: User,
+    pagination?: { page: number; limit: number },
   ): Promise<SelectionWithPropertiesResponseDto> {
     const selection = await this.selectionsRepository.findOne({
       where: { id: selectionId, isActive: true },
@@ -202,7 +203,6 @@ export class SelectionsService {
       email: selection.user.email,
     };
 
-    // 🎯 нормализуем "selection"
     const selectionDto = {
       id: selection.id,
       name: selection.name,
@@ -215,27 +215,57 @@ export class SelectionsService {
       updatedAt: selection.updatedAt,
     };
 
-    // 🔹 1. Если ручной список ID
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 10;
+    const skip = (page - 1) * limit;
+
     if (selection.propertyIds?.length) {
       const ids = selection.propertyIds.map(Number);
-      const data = await this.propertiesService.findByIds(ids);
+      const total = ids.length;
+
+      if (skip >= total) {
+        return {
+          selection: selectionDto,
+          properties: { data: [], total, page, totalPages: Math.ceil(total / limit) },
+          type: 'byIds',
+          createdBy,
+        };
+      }
+
+      const paginatedIds = ids.slice(skip, skip + limit);
+      const data = await this.propertiesService.findByIds(paginatedIds);
 
       return {
         selection: selectionDto,
-        properties: { data, total: data.length },
+        properties: {
+          data,
+          total,
+          page,
+          totalPages: Math.ceil(total / limit),
+        },
         type: 'byIds',
         createdBy,
       };
     }
 
-    // 🔹 2. Если фильтры
     if (selection.filters) {
-      const { data, total, page, totalPages } =
-        await this.propertiesService.findAll(selection.filters, user);
+      const result = await this.propertiesService.findAll(
+        {
+          ...selection.filters,
+          page,
+          limit,
+        },
+        user,
+      );
 
       return {
         selection: selectionDto,
-        properties: { data, total, page, totalPages },
+        properties: {
+          ...result,
+          total: result.total,
+          page: result.page,
+          totalPages: result.totalPages,
+        },
         type: 'byFilters',
         createdBy,
       };
@@ -244,7 +274,7 @@ export class SelectionsService {
     // 🔹 3. Пустая подборка
     return {
       selection: selectionDto,
-      properties: { data: [], total: 0 },
+      properties: { data: [], total: 0, page: 1, totalPages: 0 },
       type: 'empty',
       createdBy,
     };

@@ -14,6 +14,7 @@ import { GetUsersDto } from './dto/get-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +24,7 @@ export class UsersService {
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async updateStatus(id: number, isActive: boolean): Promise<User> {
     const user = await this.findOneById(id);
@@ -289,11 +290,11 @@ export class UsersService {
       );
     }
 
-    if (isActive !== undefined) {
+    if (isActive) {
       queryBuilder.andWhere('user.isActive = :isActive', { isActive });
     }
 
-    if (isVerified !== undefined) {
+    if (isVerified) {
       queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified });
     }
 
@@ -314,8 +315,14 @@ export class UsersService {
       .take(limit)
       .getManyAndCount();
 
+    // ⭐️ НОВЫЙ ШАГ: Маппинг данных
+    const mappedData = plainToInstance(UserResponseDto, data, {
+      // Убедитесь, что class-transformer игнорирует поля, которых нет в DTO
+      excludeExtraneousValues: true,
+    });
+
     return {
-      data,
+      data: mappedData, // <--- Возвращаем очищенные данные
       page,
       limit,
       total,

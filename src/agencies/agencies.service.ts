@@ -10,6 +10,9 @@ import { Agency } from './entities/agency.entity';
 import { AgencyDto } from '../auth/dto/register-agency.dto';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { User } from 'src/users/entities/user.entity';
+import { Brackets } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
 
 @Injectable()
 export class AgenciesService {
@@ -19,7 +22,7 @@ export class AgenciesService {
 
     @InjectRepository(User) // ✅ добавляем
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async findAll(): Promise<Agency[]> {
     return this.agenciesRepository.find({
@@ -81,38 +84,69 @@ export class AgenciesService {
       sortDirection: 'ASC' | 'DESC';
     },
   ) {
-    const qb = this.usersRepository // 👈 делаем запрос из User
+
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      sortBy = 'createdAt',
+      sortDirection = 'ASC',
+    } = options;
+
+    const skip = (page - 1) * limit;
+
+    const qb = this.usersRepository
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles') // ✅ Добавим, чтобы DTO мог их отобразить
+      .leftJoinAndSelect('user.agency', 'agency') // ✅ Добавим, чтобы DTO мог их отобразить
       .where('user.agencyId = :agencyId', { agencyId });
 
-    if (options.search) {
+    if (search) {
       qb.andWhere(
-        '(user.firstName ILIKE :search OR user.lastName ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${options.search}%` },
+        new Brackets((qb) => {
+          qb.where('user.firstName ILIKE :search', { search: `%${search}%` })
+            .orWhere('user.lastName ILIKE :search', { search: `%${search}%` })
+            .orWhere('user.email ILIKE :search', { search: `%${search}%` });
+        }),
       );
     }
 
-    if (options.status === 'active') {
+    if (status === 'active') {
       qb.andWhere('user.isActive = true');
     }
-    if (options.status === 'inactive') {
+    if (status === 'inactive') {
       qb.andWhere('user.isActive = false');
     }
-    if (options.status === 'pending') {
+    if (status === 'pending') {
       qb.andWhere('user.isVerified = false');
     }
 
-    qb.orderBy(`user.${options.sortBy}`, options.sortDirection);
+    // ВАЖНО: нужно добавить agency и roles в JOIN, чтобы DTO мог их заполнить
 
-    qb.skip((options.page - 1) * options.limit).take(options.limit);
+    // Ограничим разрешенные поля для сортировки
+    const allowedSortFields = ['firstName', 'lastName', 'email', 'createdAt'];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+
+    qb.orderBy(`user.${sortField}`, sortDirection);
+
+    qb.skip(skip).take(limit);
 
     const [users, total] = await qb.getManyAndCount();
 
+    // ⭐️ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Маппинг данных
+    const mappedUsers = plainToInstance(UserResponseDto, users, {
+      excludeExtraneousValues: true,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
     return {
-      data: users,
+      data: mappedUsers, // ✅ Отправляем очищенные данные
       total,
-      page: options.page,
-      limit: options.limit,
-    };
+      page,
+      limit,
+      totalPages,
+    }
   }
 }

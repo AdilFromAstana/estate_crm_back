@@ -12,6 +12,8 @@ import {
   Request,
   UseGuards,
   Req,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,7 +33,7 @@ import { SelectionWithPropertiesResponseDto } from './dto/selection-properties-r
 @ApiBearerAuth()
 @Controller('selections')
 export class SelectionsController {
-  constructor(private readonly selectionsService: SelectionsService) {}
+  constructor(private readonly selectionsService: SelectionsService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -59,14 +61,16 @@ export class SelectionsController {
     description: 'Подборка с объектами недвижимости и информацией об авторе',
   })
   @Get(':id')
-  async(
-    @Param('id') id: number,
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Получить подборку с объектами (с пагинацией)' })
+  @ApiOkResponse({ type: SelectionWithPropertiesResponseDto })
+  async findOneWithProperties(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Req() req: any,
   ): Promise<SelectionWithPropertiesResponseDto> {
-    return this.selectionsService.getPropertiesForSelection(
-      Number(id),
-      req.user,
-    );
+    return this.selectionsService.getPropertiesForSelection(id, req.user, { page, limit });
   }
 
   @Put(':id')
