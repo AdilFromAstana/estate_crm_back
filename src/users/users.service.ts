@@ -35,12 +35,12 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async updateAvatar(userId: number, fileName: string) {
+  async updateAvatar(userId: number, avatarUrl: string) {
     const user = await this.findOneById(userId);
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
-    user.avatar = `/uploads${fileName}`;
+    user.avatar = avatarUrl;
     await this.usersRepository.save(user);
 
     return {

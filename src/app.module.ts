@@ -48,7 +48,10 @@ import { FlatBuildingModule } from './flat-building/flat-building.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
+      envFilePath: [
+        join(process.cwd(), `.env.${process.env.NODE_ENV}`),
+        join(process.cwd(), '.env'),
+      ],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

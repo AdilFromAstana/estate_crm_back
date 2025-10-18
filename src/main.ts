@@ -27,7 +27,7 @@ async function bootstrap() {
       basicAuth({
         challenge: true,
         users: {
-          admin: process.env.SWAGGER_PASSWORD, // логин: admin
+          admin: process.env.SWAGGER_PASSWORD,
         },
       }),
     );

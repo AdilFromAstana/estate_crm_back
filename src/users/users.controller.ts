@@ -30,8 +30,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
+
+const uploadDir = join(__dirname, '../../uploads/avatars'); // а не ./uploads/avatars
 
 @ApiTags('Пользователи')
 @Controller('users')
@@ -41,7 +43,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads/avatars',
+        destination: uploadDir,
         filename: (req, file, cb) => {
           const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
           cb(null, uniqueName);
@@ -53,8 +55,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const url = `/avatars/${file.filename}`;
-
+    const url = `/uploads/avatars/${file.filename}`;
     await this.usersService.updateAvatar(id, url);
     return { url };
   }
