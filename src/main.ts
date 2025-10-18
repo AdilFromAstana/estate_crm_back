@@ -47,7 +47,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
 
-  app.use('/uploads', express.static(join(__dirname, '../..', 'uploads')));
+  const isProd = process.env.NODE_ENV === 'production';
+  const uploadsPath = join(__dirname, '../..', 'uploads');
+
+  // 👉 если продакшен — используем /api/uploads
+  // 👉 если локалка — просто /uploads
+  app.use(isProd ? '/api/uploads' : '/uploads', express.static(uploadsPath));
 
   app.enableCors({
     origin: true,
