@@ -47,12 +47,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
 
+  // ✅ Универсальная статика
   const isProd = process.env.NODE_ENV === 'production';
   const uploadsPath = join(__dirname, '../..', 'uploads');
+  const uploadsRoute = isProd ? '/api/uploads' : '/uploads';
 
-  // 👉 если продакшен — используем /api/uploads
-  // 👉 если локалка — просто /uploads
-  app.use(isProd ? '/api/uploads' : '/uploads', express.static(uploadsPath));
+  app.use(uploadsRoute, express.static(uploadsPath));
 
   app.enableCors({
     origin: true,
@@ -60,6 +60,17 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(3000);
+  const port = 3000;
+  await app.listen(port);
+
+  // 👇 Выводим в консоль финальный URL для статики
+  const baseUrl = isProd
+    ? `https://juz-realestate.kz${uploadsRoute}`
+    : `http://localhost:${port}${uploadsRoute}`;
+
+  console.log('🚀 Application is running on:', await app.getUrl());
+  console.log('📂 Static uploads are served from:', uploadsPath);
+  console.log('🌍 Public URL for uploads:', baseUrl);
 }
+
 bootstrap();
