@@ -63,10 +63,6 @@ async function bootstrap() {
   const port = 3000;
   
   await app.listen(port, async () => {
-    const isProd = process.env.NODE_ENV === 'production';
-    const uploadsPath = join(__dirname, '../..', 'uploads');
-    const uploadsRoute = isProd ? '/api/uploads' : '/uploads';
-
     const baseUrl = isProd
       ? `https://juz-realestate.kz${uploadsRoute}`
       : `http://localhost:${port}${uploadsRoute}`;

@@ -33,7 +33,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 
-const uploadDir = join(__dirname, '../../uploads/avatars'); // а не ./uploads/avatars
+const uploadDir = join(process.cwd(), 'uploads', 'avatars');
 
 @ApiTags('Пользователи')
 @Controller('users')
@@ -43,7 +43,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: uploadDir,
+        destination: uploadDir, // 👈 теперь всегда /var/www/api/uploads/avatars
         filename: (req, file, cb) => {
           const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
           cb(null, uniqueName);
@@ -55,7 +55,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const url = `/uploads/avatars/${file.filename}`;
+    const url = `/api/uploads/avatars/${file.filename}`;
     await this.usersService.updateAvatar(id, url);
     return { url };
   }
