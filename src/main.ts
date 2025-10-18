@@ -63,14 +63,16 @@ async function bootstrap() {
   const port = 3000;
   await app.listen(port);
 
-  // 👇 Выводим в консоль финальный URL для статики
-  const baseUrl = isProd
-    ? `https://juz-realestate.kz${uploadsRoute}`
-    : `http://localhost:${port}${uploadsRoute}`;
+  // 👇 Отложим вывод на 200 мс, чтобы Nest не «забил» консоль
+  setTimeout(async () => {
+    const baseUrl = isProd
+      ? `https://juz-realestate.kz${uploadsRoute}`
+      : `http://localhost:${port}${uploadsRoute}`;
 
-  console.log('🚀 Application is running on:', await app.getUrl());
-  console.log('📂 Static uploads are served from:', uploadsPath);
-  console.log('🌍 Public URL for uploads:', baseUrl);
+    console.log('🚀 Application is running on:', await app.getUrl());
+    console.log('📂 Static uploads are served from:', uploadsPath);
+    console.log('🌍 Public URL for uploads:', baseUrl);
+  }, 200);
 }
 
 bootstrap();
