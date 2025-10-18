@@ -61,10 +61,12 @@ async function bootstrap() {
   });
 
   const port = 3000;
-  await app.listen(port);
+  
+  await app.listen(port, async () => {
+    const isProd = process.env.NODE_ENV === 'production';
+    const uploadsPath = join(__dirname, '../..', 'uploads');
+    const uploadsRoute = isProd ? '/api/uploads' : '/uploads';
 
-  // 👇 Отложим вывод на 200 мс, чтобы Nest не «забил» консоль
-  setTimeout(async () => {
     const baseUrl = isProd
       ? `https://juz-realestate.kz${uploadsRoute}`
       : `http://localhost:${port}${uploadsRoute}`;
@@ -72,7 +74,7 @@ async function bootstrap() {
     console.log('🚀 Application is running on:', await app.getUrl());
     console.log('📂 Static uploads are served from:', uploadsPath);
     console.log('🌍 Public URL for uploads:', baseUrl);
-  }, 200);
+  });
 }
 
 bootstrap();
