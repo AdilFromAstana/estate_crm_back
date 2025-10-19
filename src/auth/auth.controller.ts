@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -15,6 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('Авторизация')
 @Controller('auth')
@@ -79,6 +81,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Выход из системы' })
   @ApiResponse({ status: 200, description: 'Выход выполнен успешно' })
   async logout(@Request() req) {
